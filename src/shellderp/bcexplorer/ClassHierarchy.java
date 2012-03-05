@@ -240,7 +240,18 @@ public class ClassHierarchy {
         return overrides;
     }
 
-    public Object findSuperDeclaration(ClassGen openClass, Method method) {
-        return null;
+    public Node<ClassGen> findSuperDeclaration(ClassGen cg, Method method) {
+        Node<ClassGen> node = classes.get(cg.getClassName());
+        Node<ClassGen> superNode = node.getParent();
+        if (superNode == null)
+            return null;
+
+        for (Method m : superNode.get().getMethods()) {
+            if (m.equals(method)) {
+                return superNode;
+            }
+        }
+
+        return findSuperDeclaration(superNode.get(), method);
     }
 }

@@ -3,10 +3,7 @@ package shellderp.bcexplorer;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.generic.*;
-import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
-import shellderp.bcexplorer.ui.MiddleClickCloseTabListener;
-import shellderp.bcexplorer.ui.TreeContextMenuListener;
-import shellderp.bcexplorer.ui.TreeContextMenuProvider;
+import shellderp.bcexplorer.ui.*;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -36,7 +33,7 @@ public class ClassTabPane extends JTabbedPane {
         int openIndex = indexOfTab(cg.getClassName());
         if (openIndex != -1) {
             setSelectedIndex(openIndex);
-            
+
             JScrollPane scrollPane = (JScrollPane) getComponentAt(openIndex);
             return (JTree) scrollPane.getViewport().getView();
         }
@@ -120,14 +117,18 @@ public class ClassTabPane extends JTabbedPane {
                 });
             }
             if (node.get() instanceof Method) {
-                menu.addSeparator();
-
                 final Method method = (Method) node.get();
-                Object superDecl = classHierarchy.findSuperDeclaration(openClass, method);
+                final Node<ClassGen> superDecl = classHierarchy.findSuperDeclaration(openClass, method);
                 if (superDecl != null) {
+                    menu.addSeparator();
                     menu.add(new AbstractAction("Goto super declaration") {
                         public void actionPerformed(ActionEvent e) {
-
+                            JTree classTree = openClassTab(superDecl.get());
+                            TreePath path = new TreePath(classTree.getModel().getRoot());
+                            path = path.pathByAddingChild(((Node) path.getLastPathComponent()).findChild("Methods"));
+                            Node methodNode = (Node) path.getLastPathComponent();
+                            path = path.pathByAddingChild(methodNode.findChild(method));
+                            SwingUtils.goToNode(classTree, path);
                         }
                     });
                 }
