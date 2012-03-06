@@ -15,43 +15,10 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 /**
- * TODO:
+ * Frame that holds the application together.
  *
- * MAIN FUNCTIONALITY:
- * [ ] go to declaration button in context menu when right clicking instructions such as a method call, field reference, etc
- * [ ] when showing a context menu for an instruction, list all fields and methods references in a submenu i.e. Args -> A, B
- * [ ] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
- * [ ] go to super declaration
- * [ ] find all references to a class, not to a specific member. either from class hierarchy or a class tab
- * [ ] search classnames and constants
- * [ ] search in super classes and subclasses because of virtual calls
- *    - 3 scenarios:
- *     - target/baseclass has a method m which a subclass s does not override, in this case show all references to m invoked on s
- *     - target/baseclass has a method m which a subclass s overrides, in this case do not show references to m invoked on s
- *     - target has a method m which is an overriden method from baseclass b; in this case, try to determine if a reference to b.m == a.m
- * [ ] decompiled view
- * [ ] save modified classes to jar
- *     - can keep track of where each file came from, then "save to respective jars" or "save all to single jar"
- *      - make a list of all files that didn't come from jars and prompt for jar name
- *     - also have option to save all files to wherever they came from, and possibly for only modified files
- *      - "save all classes to original files" "save only modified classes to original files"
- * [ ] field/method name refactoring
- * [ ] annotation - highlighting, making notes in classes, allow hotlinking to members
- *
- * CONVENIENCE:
- * [ ] merge loading jars & directories. select any files and auto load. if directory, load all jars in directory as well as classes
- * [ ] add option to load additional classes ontop of the existing tree
- * [ ] give option to hide certain constant pool entries (instruction.e. class index)
- *     - maybe just group constant pool entries by type?
- * [ ] option to display tree by package instead of inheritance (and other layouts?)
- * [ ] session storing and loading
- * [ ] button to sync open tab with class hierarchy tree, similar to eclipse
- * [ ] back/forward to navigate between class areas
- *
- * timeless:
- * [ ] code cleanup
- *
-  */
+ * Created by: Mike
+ */
 
 public class BCExplorerFrame extends JFrame {
     private JSplitPane horizontalSplitPane;
@@ -189,7 +156,8 @@ public class BCExplorerFrame extends JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ///////////////////////////
+        //// remove after testing ////
+        //////////////////////////////
 
         validate();
     }

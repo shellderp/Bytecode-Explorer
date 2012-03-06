@@ -83,6 +83,7 @@ public class ClassTabPane extends JTabbedPane {
                 menu.addSeparator();
 
                 menu.add(new AbstractAction("Find Local References") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         Object value = node.get();
                         Node refs = ClassHierarchy.findReferences(openClass, (FieldOrMethod) value, openClass);
@@ -96,6 +97,7 @@ public class ClassTabPane extends JTabbedPane {
                 });
 
                 menu.add(new AbstractAction("Find Global References") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         Object value = node.get();
                         Node refs = classHierarchy.findReferences(openClass, (FieldOrMethod) value);
@@ -110,6 +112,7 @@ public class ClassTabPane extends JTabbedPane {
                 menu.addSeparator();
 
                 menu.add(new AbstractAction("Refactor name") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         // TODO find references, optionally check for conflicts, then update the references to the new name
                         // possibly use bcel to verify modified classes afterwards?
@@ -117,11 +120,13 @@ public class ClassTabPane extends JTabbedPane {
                 });
             }
             if (node.get() instanceof Method) {
+                menu.addSeparator();
+
                 final Method method = (Method) node.get();
                 final Node<ClassGen> superDecl = classHierarchy.findSuperDeclaration(openClass, method);
                 if (superDecl != null) {
-                    menu.addSeparator();
-                    menu.add(new AbstractAction("Goto super declaration") {
+                    menu.add(new AbstractAction("Go to super declaration") {
+                        @Override
                         public void actionPerformed(ActionEvent e) {
                             JTree classTree = openClassTab(superDecl.get());
                             TreePath path = new TreePath(classTree.getModel().getRoot());
@@ -132,6 +137,13 @@ public class ClassTabPane extends JTabbedPane {
                         }
                     });
                 }
+
+                menu.add(new AbstractAction("Find overrides") {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // TODO
+                    }
+                });
             }
 
             return menu;

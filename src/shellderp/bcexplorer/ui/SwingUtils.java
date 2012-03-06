@@ -21,7 +21,6 @@ import java.util.Enumeration;
 public class SwingUtils {
 
     private SwingUtils() {
-        // Disallow constructing
     }
 
     public static void showErrorDialog(Component parent, String title, Object... messageLines) {
@@ -49,7 +48,6 @@ public class SwingUtils {
             tree.collapsePath(parent);
         }
     }
-
 
     public static TreePath buildTreePath(Node root, Object end) {
         ArrayList<Node> list = new ArrayList<Node>();

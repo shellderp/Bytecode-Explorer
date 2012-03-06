@@ -5,6 +5,7 @@ import shellderp.bcexplorer.ui.TreeContextMenuListener;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  * Tree component used to display search results.
@@ -18,7 +19,9 @@ public class ResultTree extends JTree {
     public ResultTree(TreeNode root) {
         super(root);
 
-        addMouseListener(new TreeContextMenuListener<Object>(new DefaultTreeContextMenuProvider<Object>(), this, null));
+        SwingUtils.expandAllChildren(this, new TreePath(root), true);
+
+        addMouseListener(new TreeContextMenuListener<>(new DefaultTreeContextMenuProvider<>(), this, null));
     }
 
     

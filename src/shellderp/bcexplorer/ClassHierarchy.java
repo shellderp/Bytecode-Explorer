@@ -137,7 +137,7 @@ public class ClassHierarchy {
      */
     public Node findReferences(ClassGen targetClass, org.apache.bcel.classfile.FieldOrMethod value) {
         Node refs = new Node("References to " + targetClass.getClassName() + " : " + value);
-        HashMap<ClassGen, FieldOrMethod> targets = new HashMap<ClassGen, FieldOrMethod>();
+        HashMap<ClassGen, FieldOrMethod> targets = new HashMap<>();
         targets.put(targetClass, value);
         if (value instanceof Method) {
             Node<ClassGen> cgNode = classes.get(targetClass.getClassName());
