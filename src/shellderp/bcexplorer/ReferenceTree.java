@@ -40,6 +40,8 @@ public class ReferenceTree extends ResultTree {
 
         ((DefaultTreeModel) getModel()).setRoot(root);
 
+        setRootVisible(false);
+
         SwingUtils.expandAllChildren(this, new TreePath(root), true);
 
         addMouseListener(new MouseAdapter() {

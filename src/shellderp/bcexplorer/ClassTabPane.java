@@ -89,7 +89,6 @@ public class ClassTabPane extends JTabbedPane {
             return;
 
         ReferenceTree rt = new ReferenceTree(this, value, refs);
-        rt.setRootVisible(false);
         resultTabPane.addTab("Refs to " + value, new JScrollPane(rt));
         resultTabPane.setSelectedIndex(resultTabPane.getComponentCount() - 1);
     }
@@ -148,11 +147,9 @@ public class ClassTabPane extends JTabbedPane {
                     menu.add(new AbstractAction("Go to super declaration") {
                         @Override public void actionPerformed(ActionEvent e) {
                             JTree classTree = openClassTab(superDecl.get());
-                            TreePath path = new TreePath(classTree.getModel().getRoot());
-                            path = path.pathByAddingChild(((Node) path.getLastPathComponent()).findChild("Methods"));
-                            Node methodNode = (Node) path.getLastPathComponent();
-                            path = path.pathByAddingChild(methodNode.findChild(method));
-                            SwingUtils.goToNode(classTree, path);
+                            
+                            Node root = (Node) classTree.getModel().getRoot();
+                            SwingUtils.goToNode(classTree, root.findChild("Methods").findChild(method).getPath());
                         }
                     });
                 }

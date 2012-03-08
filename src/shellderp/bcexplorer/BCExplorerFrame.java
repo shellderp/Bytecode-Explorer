@@ -1,5 +1,6 @@
 package shellderp.bcexplorer;
 
+import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.ui.MiddleClickCloseTabListener;
 import shellderp.bcexplorer.ui.SwingUtils;
@@ -10,13 +11,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.jar.JarFile;
 
 /**
  * Frame that holds the application together.
- *
+ * <p/>
  * Created by: Mike
  */
 
@@ -38,56 +40,53 @@ public class BCExplorerFrame extends JFrame {
         JMenuBar menubar = new JMenuBar();
 
         JMenu fileMenu = menubar.add(new JMenu("File"));
-        fileMenu.add(new AbstractAction("Load jar") {
+        fileMenu.add(new AbstractAction("Load classes") {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
-                fc.setFileFilter(new FileNameExtensionFilter("JAR file", "jar", "zip"));
+                fc.setDialogTitle("Choose directories and/or jars to load");
+                fc.setFileFilter(new FileNameExtensionFilter("Java class files", "class", "jar", "zip"));
+                fc.setMultiSelectionEnabled(true);
+                fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+
                 fc.showOpenDialog(BCExplorerFrame.this);
-                File file = fc.getSelectedFile();
-                if (file != null) {
+
+                File[] files = fc.getSelectedFiles();
+
+                if (files == null)
+                    return;
+
+                for (File file : files) {
                     try {
-                        JarFile jf = new JarFile(file);
-                        classHierarchy = ClassHierarchy.fromJarFile(jf);
-                        jf.close();
-
-                        // the jar loaded successfully, close all active tabs and display the new class hierarchy
-                        BCExplorerFrame.this.closeAll();
-
-                        classTabPane = new ClassTabPane(classHierarchy, resultTabPane);
-                        classTree = classHierarchy.buildJTree(classTabPane);
-                        verticalSplitPane.setTopComponent(classTabPane);
-                        horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                        System.out.println("loading " + file);
+                        if (file.isDirectory()) {
+                            classHierarchy.loadDirectory(new File[]{file});
+                        } else if (file.getName().endsWith(".jar")) {
+                            JarFile jf = new JarFile(file);
+                            classHierarchy.loadJarFile(jf);
+                        } else if (file.getName().endsWith(".class")) {
+                            ClassParser cp = new ClassParser(new FileInputStream(file), file.getName());
+                            classHierarchy.loadClasses(Collections.singletonList(new ClassGen(cp.parse())));
+                        }
+                    } catch (IOException ex) {
                         SwingUtils.showErrorDialog(BCExplorerFrame.this, "Error loading", "Error loading '" + file.getName() + "'", "Message: " + ex);
                     }
                 }
+
+                // display the new class hierarchy
+                classTree = classHierarchy.buildJTree(classTabPane);
+                horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
             }
         });
-        fileMenu.add(new AbstractAction("Load directories") {
+        fileMenu.add(new AbstractAction("Unload all classes") {
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
-                fc.setDialogTitle("Choose directories");
-                fc.setMultiSelectionEnabled(true);
-                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                fc.showOpenDialog(BCExplorerFrame.this);
-                File[] files = fc.getSelectedFiles();
-                if (files != null) {
-                    try {
-                        classHierarchy = ClassHierarchy.fromDirectories(files);
+                int button = JOptionPane.showConfirmDialog(BCExplorerFrame.this, "Unload all classes?", "Confirm unload", JOptionPane.OK_CANCEL_OPTION);
+                if (button != JOptionPane.OK_OPTION)
+                    return;
 
-                        // the jar loaded successfully, close all active tabs and display the new class hierarchy
-                        BCExplorerFrame.this.closeAll();
-
-                        classTabPane = new ClassTabPane(classHierarchy, resultTabPane);
-                        classTree = classHierarchy.buildJTree(classTabPane);
-                        verticalSplitPane.setTopComponent(classTabPane);
-                        horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        SwingUtils.showErrorDialog(BCExplorerFrame.this, "Error loading", "Error loading from directory", "Message: " + ex);
-                    }
-                }
+                closeAll();
+                classHierarchy.unloadClasses();
+                classTree = classHierarchy.buildJTree(classTabPane);
+                horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
             }
         });
         fileMenu.addSeparator();
@@ -126,6 +125,14 @@ public class BCExplorerFrame extends JFrame {
         resultTabPane.addMouseListener(new MiddleClickCloseTabListener(resultTabPane));
         resultTabPane.setPreferredSize(new Dimension(0, getHeight() / 4));
 
+        try {
+            classHierarchy = new ClassHierarchy(Object.class.getCanonicalName());
+        } catch (ClassNotFoundException e) {
+            // won't happen
+            e.printStackTrace();
+            System.exit(1);
+        }
+
         classTabPane = new ClassTabPane(classHierarchy, resultTabPane);
 
         verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -148,7 +155,7 @@ public class BCExplorerFrame extends JFrame {
 
         // TODO remove after testing
         try {
-            classHierarchy = ClassHierarchy.fromDirectories(new File[]{new File("out")});
+            classHierarchy.loadDirectory(new File[]{new File("out")});
             classTabPane = new ClassTabPane(classHierarchy, resultTabPane);
             classTree = classHierarchy.buildJTree(classTabPane);
             verticalSplitPane.setTopComponent(classTabPane);

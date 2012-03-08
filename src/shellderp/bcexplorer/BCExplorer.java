@@ -3,7 +3,6 @@ package shellderp.bcexplorer;
 import javax.swing.*;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Mike
  * Date: 1/16/12
  * Time: 9:11 PM

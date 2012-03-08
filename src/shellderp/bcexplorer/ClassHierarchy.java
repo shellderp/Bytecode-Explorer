@@ -22,7 +22,7 @@ import java.util.jar.JarFile;
 /**
  * ClassHierarchy maintains the hierarchy of loaded classes, and provides a JTree
  * component to display the classes in the explorer.
- * 
+ * <p/>
  * Created by: Mike
  * Date: 1/17/12
  * Time: 8:31 PM
@@ -31,19 +31,20 @@ public class ClassHierarchy {
     private HashMap<String, Node<ClassGen>> classes = new HashMap<String, Node<ClassGen>>();
     Node<ClassGen> rootClass;
 
-    public ClassHierarchy(List<ClassGen> loadList) {
+    public ClassHierarchy(String rootClassName) throws ClassNotFoundException {
+        // initialize the root class
+        rootClass = new Node<ClassGen>(new ClassGen(Repository.lookupClass(rootClassName)));
+        rootClass.setDisplayText(rootClass.get().getClassName());
+        classes.put(rootClass.get().getClassName(), rootClass);
+    }
 
-        // initialize the root class (Object)
-        try {
-            rootClass = new Node<ClassGen>(new ClassGen(Repository.lookupClass("java.lang.Object")));
-            rootClass.setDisplayText("java.lang.Object");
-            classes.put("java.lang.Object", rootClass);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
+    public void loadClasses(List<ClassGen> loadList) {
         Queue<String> loadQueue = new LinkedList<String>();
         for (ClassGen cg : loadList) {
+            if (classes.containsKey(cg.getClassName())) {
+                System.err.println("[WARNING] skipping class already loaded: " + cg.getClassName());
+                continue;
+            }
             classes.put(cg.getClassName(), new Node<ClassGen>(cg));
             loadQueue.add(cg.getClassName());
         }
@@ -65,8 +66,7 @@ public class ClassHierarchy {
                     loadQueue.add(superName);
                     superNode.addChild(node);
                 } catch (ClassNotFoundException e) {
-                    System.err.println("Superclass missing: " + className);
-                    System.err.println(e);
+                    System.err.println("WARNING: superclass missing: " + className);
                 }
             }
         }
@@ -74,7 +74,7 @@ public class ClassHierarchy {
         rootClass.sortAll(); // TODO maybe do this while inserting?
     }
 
-    public static ClassHierarchy fromJarFile(JarFile jar) throws IOException {
+    public void loadJarFile(JarFile jar) throws IOException {
         Enumeration<JarEntry> jarEntries = jar.entries();
         List<ClassGen> classes = new LinkedList<ClassGen>();
         while (jarEntries.hasMoreElements()) {
@@ -84,10 +84,10 @@ public class ClassHierarchy {
                 classes.add(new ClassGen(cp.parse()));
             }
         }
-        return new ClassHierarchy(classes);
+        loadClasses(classes);
     }
 
-    public static ClassHierarchy fromDirectories(File[] dirs) throws IOException {
+    public void loadDirectory(File[] dirs) throws IOException {
         List<ClassGen> classes = new LinkedList<>();
 
         Stack<File> subDirs = new Stack<>();
@@ -103,11 +103,19 @@ public class ClassHierarchy {
                 } else if (file.getName().endsWith(".class")) {
                     ClassParser cp = new ClassParser(new FileInputStream(file), file.getName());
                     classes.add(new ClassGen(cp.parse()));
+                } else if (file.getName().endsWith(".jar")) {
+                    loadJarFile(new JarFile(file));
                 }
             }
         } while (!subDirs.empty());
 
-        return new ClassHierarchy(classes);
+        loadClasses(classes);
+    }
+
+    public void unloadClasses() {
+        rootClass.removeAllChildren();
+        classes.clear();
+        classes.put(rootClass.get().getClassName(), rootClass);
     }
 
     public JTree buildJTree(final ClassTabPane classTabPane) {
@@ -149,7 +157,7 @@ public class ClassHierarchy {
 
     public static List<Reference> findReferences(ClassGen visitClass, InstructionFilter filter) {
         ConstantPoolGen cpgen = visitClass.getConstantPool();
-        
+
         List<Reference> refs = new ArrayList<>();
 
         // Visit every instruction of every method
@@ -162,7 +170,7 @@ public class ClassHierarchy {
                 Instruction instruction = ih.getInstruction();
 
                 if (filter.filter(visitClass, method, instruction)) {
-                    refs.add(new Reference(visitClass,  method, ih));
+                    refs.add(new Reference(visitClass, method, ih));
                 }
             }
         }
