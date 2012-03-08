@@ -3,11 +3,15 @@ package shellderp.bcexplorer;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.generic.*;
+import shellderp.bcexplorer.reference.FieldReferenceFilter;
+import shellderp.bcexplorer.reference.MethodReferenceFilter;
+import shellderp.bcexplorer.reference.Reference;
 import shellderp.bcexplorer.ui.*;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
+import java.util.List;
 
 /**
  * Provides a tabbed pane that displays open classes and their members.
@@ -66,7 +70,12 @@ public class ClassTabPane extends JTabbedPane {
         }
 
         final JTree classTree = new JTree(root);
-        classTree.addMouseListener(new TreeContextMenuListener<ClassGen>(contextMenuProvider, classTree, cg));
+
+        classTree.addMouseListener(new TreeContextMenuListener<>(contextMenuProvider, classTree, cg));
+
+        classTree.expandPath(fields.getPath());
+        classTree.expandPath(methods.getPath());
+
         addTab(cg.getClassName(), new JScrollPane(classTree));
 
         setSelectedIndex(getComponentCount() - 1);
@@ -74,60 +83,70 @@ public class ClassTabPane extends JTabbedPane {
         return classTree;
     }
 
+    // TODO find suitable location
+    private void addReferenceTab(Object value, List<Reference> refs) {
+        if (refs.isEmpty())
+            return;
+
+        ReferenceTree rt = new ReferenceTree(this, value, refs);
+        rt.setRootVisible(false);
+        resultTabPane.addTab("Refs to " + value, new JScrollPane(rt));
+        resultTabPane.setSelectedIndex(resultTabPane.getComponentCount() - 1);
+    }
+
     private TreeContextMenuProvider<ClassGen> contextMenuProvider = new DefaultTreeContextMenuProvider<ClassGen>() {
         @Override
         public JPopupMenu createContextMenu(final JTree tree, final TreePath path, final Node node, final ClassGen openClass) {
             JPopupMenu menu = super.createContextMenu(tree, path, node, openClass);
 
-            if (node.get() instanceof org.apache.bcel.classfile.FieldOrMethod) {
+            if (node.get() instanceof Field) {
                 menu.addSeparator();
 
+                final Field field = (Field) node.get();
+
                 menu.add(new AbstractAction("Find Local References") {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Object value = node.get();
-                        Node refs = ClassHierarchy.findReferences(openClass, (FieldOrMethod) value, openClass);
-                        if (refs != null) {
-                            ReferenceTree rt = new ReferenceTree(ClassTabPane.this, refs);
-                            rt.setRootVisible(false);
-                            resultTabPane.addTab("Refs to " + value, new JScrollPane(rt));
-                            resultTabPane.setSelectedIndex(resultTabPane.getComponentCount() - 1);
-                        }
+                    @Override public void actionPerformed(ActionEvent e) {
+                        addReferenceTab(field, ClassHierarchy.findReferences(openClass, new FieldReferenceFilter(openClass, field)));
                     }
                 });
 
                 menu.add(new AbstractAction("Find Global References") {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Object value = node.get();
-                        Node refs = classHierarchy.findReferences(openClass, (FieldOrMethod) value);
-                        if (refs != null) {
-                            ReferenceTree rt = new ReferenceTree(ClassTabPane.this, refs);
-                            resultTabPane.addTab("Refs to " + value.toString(), new JScrollPane(rt));
-                            resultTabPane.setSelectedIndex(resultTabPane.getComponentCount() - 1);
-                        }
+                    @Override public void actionPerformed(ActionEvent e) {
+                        addReferenceTab(field, classHierarchy.findReferences(new FieldReferenceFilter(openClass, field)));
                     }
                 });
 
                 menu.addSeparator();
 
                 menu.add(new AbstractAction("Refactor name") {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
+                    @Override public void actionPerformed(ActionEvent e) {
                         // TODO find references, optionally check for conflicts, then update the references to the new name
                         // possibly use bcel to verify modified classes afterwards?
                     }
                 });
-            }
-            if (node.get() instanceof Method) {
+            } else if (node.get() instanceof Method) {
                 menu.addSeparator();
 
                 final Method method = (Method) node.get();
+
+                menu.add(new AbstractAction("Find Local References") {
+                    @Override public void actionPerformed(ActionEvent e) {
+                        addReferenceTab(method, ClassHierarchy.findReferences(openClass, new MethodReferenceFilter(openClass, method)));
+                    }
+                });
+
+                menu.add(new AbstractAction("Find Global References") {
+                    @Override public void actionPerformed(ActionEvent e) {
+                        addReferenceTab(method, classHierarchy.findReferences(new MethodReferenceFilter(openClass, method)));
+                    }
+                });
+
+                menu.addSeparator();
+
                 final Node<ClassGen> superDecl = classHierarchy.findSuperDeclaration(openClass, method);
                 if (superDecl != null) {
                     menu.add(new AbstractAction("Go to super declaration") {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
+                        @Override public void actionPerformed(ActionEvent e) {
                             JTree classTree = openClassTab(superDecl.get());
                             TreePath path = new TreePath(classTree.getModel().getRoot());
                             path = path.pathByAddingChild(((Node) path.getLastPathComponent()).findChild("Methods"));
@@ -139,8 +158,7 @@ public class ClassTabPane extends JTabbedPane {
                 }
 
                 menu.add(new AbstractAction("Find overrides") {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
+                    @Override public void actionPerformed(ActionEvent e) {
                         // TODO
                     }
                 });

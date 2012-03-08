@@ -30,11 +30,15 @@ CONVENIENCE:
 [ ] button to locate the current open tab with class hierarchy tree, and one to autosync when changing tabs, similar to eclipse double arrows
 [ ] back/forward to navigate between class areas
 [ ] toggle between fully qualified names and simple class names, possibly per location (i.e. only for reference tab)
+    - if fully qualified disabled for tabs, mouse over tooltip for full name
 [ ] type-first-letters-to-find classes, methods, fields
 [ ] expand all nodes when creating trees
 [ ] confirm before exiting (only for unsaved changes)
+[ ] order methods,fields by modifiers
+[ ] use icons for methods,fields to reflect modifiers
 
 timeless:
 [ ] code cleanup
     - creating TreePath's to methods
   - findReferences can be simplified to look for a pattern, rather than a field or method specifically
+[ ] move things off swing thread to threadpool

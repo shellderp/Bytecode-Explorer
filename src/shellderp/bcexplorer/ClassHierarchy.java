@@ -4,6 +4,8 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.generic.*;
+import shellderp.bcexplorer.reference.Reference;
+import shellderp.bcexplorer.reference.InstructionFilter;
 import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
 import shellderp.bcexplorer.ui.TreeContextMenuListener;
 
@@ -86,9 +88,9 @@ public class ClassHierarchy {
     }
 
     public static ClassHierarchy fromDirectories(File[] dirs) throws IOException {
-        List<ClassGen> classes = new LinkedList<ClassGen>();
+        List<ClassGen> classes = new LinkedList<>();
 
-        Stack<File> subDirs = new Stack<File>();
+        Stack<File> subDirs = new Stack<>();
         for (File dir : dirs) {
             subDirs.push(dir);
         }
@@ -133,103 +135,49 @@ public class ClassHierarchy {
     }
 
     /*
-     * Search for references to a value of targetClass, in all classes in the hierarchy.
+     * Searches for references in all classes in the hierarchy.
      */
-    public Node findReferences(ClassGen targetClass, org.apache.bcel.classfile.FieldOrMethod value) {
-        Node refs = new Node("References to " + targetClass.getClassName() + " : " + value);
-        HashMap<ClassGen, FieldOrMethod> targets = new HashMap<>();
-        targets.put(targetClass, value);
-        if (value instanceof Method) {
-            Node<ClassGen> cgNode = classes.get(targetClass.getClassName());
-            Method method = (Method) value;
-            if (!cgNode.isLeaf() && !method.isPrivate()) {
-                HashMap<ClassGen, Method> overrides = getOverridingClasses(cgNode, method);
+    public List<Reference> findReferences(InstructionFilter filter) {
+        List<Reference> refs = new ArrayList<>();
 
-                if (overrides.size() > 0) {
-                    // TODO probably get rid of this dialog entirely
-                    int input = JOptionPane.showConfirmDialog(null, "The selected method is overriden.\nSearch for references to overriden methods as well?", "Notice", JOptionPane.YES_NO_OPTION);
-                    if (input == JOptionPane.YES_OPTION) {
-                        targets.putAll(overrides);
-                    }
-                }
-            }
+        for (Node<ClassGen> classNode : classes.values()) {
+            refs.addAll(findReferences(classNode.get(), filter));
         }
-        for (Map.Entry<ClassGen, FieldOrMethod> target : targets.entrySet()) {
-            for (Node<ClassGen> cg : classes.values()) {
 
-                ClassGen scanClass = target.getKey();
-                FieldOrMethod targetValue = target.getValue();
-                Node n = findReferences(scanClass, targetValue, cg.get());
-                if (n != null)
-                    refs.addChild(n);
-            }
-        }
-        return refs.getChildCount() > 0 ? refs : null;
+        return refs;
     }
 
-    public static Node findReferences(ClassGen targetClass, org.apache.bcel.classfile.FieldOrMethod value, ClassGen scanClass) {
-        // TODO cleanup
-        ConstantPoolGen cpgen = scanClass.getConstantPool();
-        Node refs = new Node("in " + scanClass.getClassName());
-        if (value instanceof Field) {
-            Field field = (Field) value;
-            for (Method method : scanClass.getMethods()) {
-                InstructionList list = new MethodGen(method, scanClass.getClassName(), cpgen).getInstructionList();
-                if (list == null)
-                    continue;
-                Node methodRefs = new Node("in " + method);
-                for (InstructionHandle ih : list.getInstructionHandles()) {
-                    Instruction instruction = ih.getInstruction();
-                    if (instruction instanceof FieldInstruction) {
-                        FieldInstruction fi = (FieldInstruction) ih.getInstruction();
-                        try {
-                            ObjectType loadType = fi.getLoadClassType(cpgen);
-                            if (!loadType.getClassName().equals(targetClass.getClassName()))
-                                continue;
-                        } catch (Exception ex) {
-                            System.err.println(scanClass + " " + method + " " + fi + " " + ex);
-                            continue;
-                        }
-                        if (fi.getFieldName(cpgen).equals(field.getName()) && fi.getFieldType(cpgen).equals(field.getType())) {
-                            methodRefs.addChild(new Reference(scanClass, method, ih));
-                        }
-                    }
-                }
-                if (methodRefs.getChildCount() > 0)
-                    refs.addChild(methodRefs);
-            }
-        } else if (value instanceof Method) {
-            Method target = (Method) value;
-            String targetName = target.getName();
-            String targetSig = target.getSignature();
-            for (Method method : scanClass.getMethods()) {
-                InstructionList list = new MethodGen(method, scanClass.getClassName(), cpgen).getInstructionList();
-                if (list == null)
-                    continue;
-                for (InstructionHandle ih : list.getInstructionHandles()) {
-                    Instruction instruction = ih.getInstruction();
-                    if (instruction instanceof InvokeInstruction) {
-                        InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
-                        if (!invoke.getLoadClassType(cpgen).getClassName().equals(targetClass.getClassName()))
-                            continue;
-                        if (targetName.equals(invoke.getMethodName(cpgen)) && targetSig.equals(invoke.getSignature(cpgen))) {
-                            refs.addChild(new Reference(scanClass, method, ih));
-                        }
-                    }
+    public static List<Reference> findReferences(ClassGen visitClass, InstructionFilter filter) {
+        ConstantPoolGen cpgen = visitClass.getConstantPool();
+        
+        List<Reference> refs = new ArrayList<>();
+
+        // Visit every instruction of every method
+        for (Method method : visitClass.getMethods()) {
+            InstructionList list = new MethodGen(method, visitClass.getClassName(), cpgen).getInstructionList();
+            if (list == null)
+                continue;
+
+            for (InstructionHandle ih : list.getInstructionHandles()) {
+                Instruction instruction = ih.getInstruction();
+
+                if (filter.filter(visitClass, method, instruction)) {
+                    refs.add(new Reference(visitClass,  method, ih));
                 }
             }
         }
-        return refs.getChildCount() > 0 ? refs : null;
+
+        return refs;
     }
 
-    public HashMap<ClassGen, Method> getOverridingClasses(Node<ClassGen> cgNode, Method method) {
+    public HashMap<ClassGen, Method> findOverrides(Node<ClassGen> cgNode, Method method) {
         // todo: test this method
-        HashMap<ClassGen, Method> overrides = new HashMap<ClassGen, Method>();
+        HashMap<ClassGen, Method> overrides = new HashMap<>();
         String targetName = method.getName();
         String targetSig = method.getSignature();
         for (Node<ClassGen> child : cgNode) {
             if (!child.isLeaf())
-                overrides.putAll(getOverridingClasses(child, method));
+                overrides.putAll(findOverrides(child, method));
             for (Method m : cgNode.get().getMethods()) {
                 if (targetName.equals(m.getName()) && targetSig.equals(m.getSignature())) {
                     overrides.put(child.get(), m);

@@ -1,6 +1,7 @@
 package shellderp.bcexplorer;
 
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.util.*;
 
 public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>> {
@@ -82,6 +83,12 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
                 return child;
         }
         return null;
+    }
+    
+    public TreePath getPath() {
+        if (parent != null)
+            return parent.getPath().pathByAddingChild(this);
+        return new TreePath(this);
     }
 
     public Node<T> depthSearch(T value) {

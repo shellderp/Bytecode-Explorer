@@ -1,62 +1,64 @@
 package shellderp.bcexplorer;
 
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.InstructionHandle;
+import shellderp.bcexplorer.reference.Reference;
 import shellderp.bcexplorer.ui.SwingUtils;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 /**
  * Models reference search results.
- *
+ * <p/>
  * Created by: Mike
  * Date: 1/17/12
  * Time: 8:38 PM
  */
 public class ReferenceTree extends ResultTree {
 
-    public ReferenceTree(final ClassTabPane classTabPane, final Node<Reference> refs) {
-        super(refs);
+    public ReferenceTree(final ClassTabPane classTabPane, Object value, final List<Reference> refs) {
+        Node root = new Node("Ref's to " + value);
+
+        for (Reference ref : refs) {
+            Node classNode = root.findChild(ref.classGen);
+            if (classNode == null) {
+                classNode = root.addChild(ref.classGen);
+                classNode.setDisplayText(ref.classGen.getClassName());
+            }
+
+            Node methodNode = classNode.findChild(ref.method);
+            if (methodNode == null) {
+                methodNode = classNode.addChild(ref.method);
+            }
+
+            methodNode.addChild(ref);
+        }
+
+        ((DefaultTreeModel) getModel()).setRoot(root);
+
+        SwingUtils.expandAllChildren(this, new TreePath(root), true);
 
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent event) {
                 if (event.getButton() == MouseEvent.BUTTON1 && event.getClickCount() == 2) {
                     Node node = (Node) getLastSelectedPathComponent();
-                    if (node != null && node.get() instanceof Reference) {
-                        Reference value = (Reference) node.get();
-                        if (value != null) {
-                            JTree classTree = classTabPane.openClassTab(value.cg);
-                            TreePath path = new TreePath(classTree.getModel().getRoot());
-                            path = path.pathByAddingChild(((Node) path.getLastPathComponent()).findChild("Methods"));
-                            Node methodNode = (Node) path.getLastPathComponent();
-                            path = path.pathByAddingChild(methodNode.findChild(value.method));
-                            methodNode = (Node) path.getLastPathComponent();
-                            path = path.pathByAddingChild(methodNode.findChild(new InstructionWrapper(value.ih, value.method)));
-                            SwingUtils.goToNode(classTree, path);
-                        }
-                    }
+
+                    if (node == null || !(node.get() instanceof Reference))
+                        return;
+
+                    Reference value = (Reference) node.get();
+
+                    JTree classTree = classTabPane.openClassTab(value.classGen);
+                    Node root = (Node) classTree.getModel().getRoot();
+                    Node inode = root.findChild("Methods").findChild(value.method).findChild(new InstructionWrapper(value.ih, value.method));
+                    SwingUtils.goToNode(classTree, inode.getPath());
                 }
             }
         });
     }
 }
 
-class Reference {
-    ClassGen cg;
-    Method method;
-    InstructionHandle ih;
-
-    public Reference(ClassGen cg, Method method, InstructionHandle ih) {
-        this.cg = cg;
-        this.method = method;
-        this.ih = ih;
-    }
-
-    public String toString() {
-        return ih.getInstruction().toString(cg.getConstantPool().getConstantPool());
-    }
-}

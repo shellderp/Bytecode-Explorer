@@ -16,13 +16,8 @@ import javax.swing.tree.TreePath;
  */
 public class ResultTree extends JTree {
 
-    public ResultTree(TreeNode root) {
-        super(root);
-
-        SwingUtils.expandAllChildren(this, new TreePath(root), true);
-
+    public ResultTree() {
         addMouseListener(new TreeContextMenuListener<>(new DefaultTreeContextMenuProvider<>(), this, null));
     }
 
-    
 }
