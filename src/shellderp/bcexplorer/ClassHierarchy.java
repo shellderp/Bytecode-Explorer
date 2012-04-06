@@ -66,6 +66,7 @@ public class ClassHierarchy {
                     loadQueue.add(superName);
                     superNode.addChild(node);
                 } catch (ClassNotFoundException e) {
+                    // TODO link orphaned classes when loading other jars, since they might contain the superclass
                     System.err.println("WARNING: superclass missing: " + className);
                 }
             }

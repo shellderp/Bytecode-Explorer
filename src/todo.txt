@@ -1,10 +1,13 @@
 MAIN FUNCTIONALITY:
 [x] go to super declaration
+[ ] classes can be loaded as orphans (no superclass loaded). keep in a list and link to parents if parentclass is loaded
 [ ] go to declaration button in context menu when right clicking instructions such as a method call, field reference, etc
 [ ] when showing a context menu for an instruction, list all fields and methods references in a submenu i.e. Args -> A, B
 [ ] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
 [ ] find all references to a class (rather than to a specific member) either from class hierarchy or a class tab
-[ ] search classnames and constants
+[ ] search in classes - for classnames, methodnames, fieldnames, constants, more?
+    - can have a search for class member by modifiers/name
+[ ] search in open class - not sure what criteria to use
 [ ] handle overrides in reference search
    - 3 scenarios:
     - target/baseclass has a method m which a subclass s does not override, in this case show all references to m invoked on s
@@ -20,13 +23,13 @@ MAIN FUNCTIONALITY:
 [ ] field/method name refactoring
 [ ] annotation - highlighting, making notes in classes, allow hotlinking to members
     - can do bookmarks similarly
+[ ] docking frames
 
 
 CONVENIENCE:
 [x] merge loading jars & directories. select any files and auto load. if directory, load all jars in directory as well as classes
 [x] add option to load additional classes ontop of the existing tree
-[ ] give option to hide certain constant pool entries
-    - maybe just group constant pool entries by type, in tree?
+[x] group constant pool entries by type
 [ ] option to display tree by package instead of inheritance
 [ ] session storing and loading
 [ ] button to locate the current open tab with class hierarchy tree, and one to autosync when changing tabs, similar to eclipse double arrows
@@ -35,11 +38,11 @@ CONVENIENCE:
     - if fully qualified disabled for tabs, mouse over tooltip for full name
     - have a Name class that provides the chosen name style
 [ ] type-first-letters-to-find classes, methods, fields
-[ ] expand all nodes when creating trees
-[ ] confirm before exiting (only for unsaved changes)
-[ ] order methods,fields by modifiers
+[x] expand all nodes when creating trees
+[ ] option to order methods,fields by modifiers, alphabetical, type
 [ ] use icons for methods,fields to reflect modifiers
-[ ] settings dialog
 
 timeless:
 [ ] move slow things off swing thread to a threadpool e.g. reference searching
+[ ] confirm before exiting (only for unsaved changes)
+[ ] settings dialog

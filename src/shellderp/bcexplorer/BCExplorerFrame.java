@@ -57,7 +57,6 @@ public class BCExplorerFrame extends JFrame {
 
                 for (File file : files) {
                     try {
-                        System.out.println("loading " + file);
                         if (file.isDirectory()) {
                             classHierarchy.loadDirectory(new File[]{file});
                         } else if (file.getName().endsWith(".jar")) {
@@ -108,16 +107,11 @@ public class BCExplorerFrame extends JFrame {
         }).setEnabled(false);
 
         JMenu toolsMenu = menubar.add(new JMenu("Tools"));
-        toolsMenu.add(new AbstractAction("Search classes by name") {
+        toolsMenu.add(new AbstractAction("Search for classes") {
             public void actionPerformed(ActionEvent e) {
                 // TODO
             }
         }).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
-        toolsMenu.add(new AbstractAction("Search constants") {
-            public void actionPerformed(ActionEvent e) {
-                // TODO
-            }
-        });
 
         setJMenuBar(menubar);
 
@@ -220,40 +214,6 @@ public class BCExplorerFrame extends JFrame {
             showMatches(matches);
         }
     }*/
-
-    public void showMatches(Vector<ClassGen> matches) {
-        if (matches.size() == 0)
-            return;
-        JList list = new JList(matches);
-        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        list.setSelectedIndex(0);
-        Object[] message = {"The following results matched your search,  please select which you would like to take action on: ", new JScrollPane(list)};
-        /* TODO
-         * will make this display in same way as reference tree
-         * no need for Find in Tree, instead a better idea is to be able to find in tree any open class
-         * also provide context menu to do so, in case the user doesn't want to open a class every time
-         * we could also display all results in their tree form, so find in tree isn't needed
-        */
-        Object[] options = {"Open", "Find in Tree", "Cancel"};
-        int result = JOptionPane.showOptionDialog(this, message, "Search Results", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
-        int[] values = list.getSelectedIndices();
-        if (values.length > 0) {
-            switch (result) {
-                case 0:
-                    for (int idx : values) {
-                        ClassGen cg = matches.get(idx);
-                        classTabPane.openClassTab(cg);
-                    }
-                    break;
-                case 1:
-                    for (int idx : values) {
-                        ClassGen cg = matches.get(idx);
-                        goToClassNode(classTree, cg);
-                    }
-                    break;
-            }
-        }
-    }
 
     public void goToClassNode(JTree t, Object o) {
         SwingUtils.goToNode(t, SwingUtils.buildTreePath(classHierarchy.rootClass, o));

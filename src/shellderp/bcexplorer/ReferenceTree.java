@@ -20,8 +20,8 @@ import java.util.List;
  */
 public class ReferenceTree extends ResultTree {
 
-    public ReferenceTree(final ClassTabPane classTabPane, Object value, final List<Reference> refs) {
-        Node root = new Node("Ref's to " + value);
+    public ReferenceTree(final ClassTabPane classTabPane, final List<Reference> refs) {
+        Node root = new Node("References");
 
         for (Reference ref : refs) {
             Node classNode = root.findChild(ref.classGen);

@@ -3,6 +3,7 @@ package shellderp.bcexplorer;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.generic.*;
+import org.apache.bcel.util.ByteSequence;
 import shellderp.bcexplorer.reference.FieldReferenceFilter;
 import shellderp.bcexplorer.reference.MethodReferenceFilter;
 import shellderp.bcexplorer.reference.Reference;
@@ -10,7 +11,10 @@ import shellderp.bcexplorer.ui.*;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,12 +47,19 @@ public class ClassTabPane extends JTabbedPane {
         }
 
         ConstantPoolGen cpgen = cg.getConstantPool();
-        Node<String> root = new Node<String>("Class " + cg.getClassName() + " extends " + cg.getSuperclassName());
+        Node<String> root = new Node<>("Class " + cg.getClassName() + " extends " + cg.getSuperclassName());
 
         Node<String> cp = root.addChild("Constant Pool (" + cpgen.getSize() + " entries)");
         for (int i = 0; i < cpgen.getSize(); i++) {
             Constant constant = cpgen.getConstant(i);
-            cp.addChild(i + ": " + constant);
+            if (constant == null)
+                continue;
+
+            String type = constant.getClass().getSimpleName();
+            Node typeNode = cp.findChild(type);
+            if (typeNode == null)
+                typeNode = cp.addChild(type);
+            typeNode.addChild(i + ": " + cpgen.getConstantPool().constantToString(constant));
         }
 
         Node fields = root.addChild("Fields");
@@ -59,17 +70,20 @@ public class ClassTabPane extends JTabbedPane {
         Node methods = root.addChild("Methods");
         for (Method method : cg.getMethods()) {
             Node m = methods.addChild(method);
+            
             InstructionList list = new MethodGen(method, cg.getClassName(), cpgen).getInstructionList();
             if (list == null)
                 continue;
 
+            int posMaxDigits = String.valueOf(list.getEnd().getPosition()).length();
             for (InstructionHandle ih : list.getInstructionHandles()) {
-                String label = ih.getPosition() + " " + ih.getInstruction().toString(cpgen.getConstantPool());
+                String label = String.format("%" + posMaxDigits + "d: %s", ih.getPosition(), ih.getInstruction().toString(cpgen.getConstantPool()));
                 m.addChild(new InstructionWrapper(ih, method)).setDisplayText(label);
             }
         }
 
         final JTree classTree = new JTree(root);
+        classTree.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
         classTree.addMouseListener(new TreeContextMenuListener<>(contextMenuProvider, classTree, cg));
 
@@ -88,7 +102,7 @@ public class ClassTabPane extends JTabbedPane {
         if (refs.isEmpty())
             return;
 
-        ReferenceTree rt = new ReferenceTree(this, value, refs);
+        ReferenceTree rt = new ReferenceTree(this, refs);
         resultTabPane.addTab("Refs to " + value, new JScrollPane(rt));
         resultTabPane.setSelectedIndex(resultTabPane.getComponentCount() - 1);
     }
