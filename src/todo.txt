@@ -3,7 +3,7 @@ MAIN FUNCTIONALITY:
 [ ] classes can be loaded as orphans (no superclass loaded). keep in a list and link to parents if parentclass is loaded
 [ ] go to declaration button in context menu when right clicking instructions such as a method call, field reference, etc
 [ ] when showing a context menu for an instruction, list all fields and methods references in a submenu i.e. Args -> A, B
-[ ] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
+[x] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
 [ ] find all references to a class (rather than to a specific member) either from class hierarchy or a class tab
 [ ] search in classes - for classnames, methodnames, fieldnames, constants, more?
     - can have a search for class member by modifiers/name
@@ -31,6 +31,10 @@ CONVENIENCE:
 [x] add option to load additional classes ontop of the existing tree
 [x] group constant pool entries by type
 [ ] option to display tree by package instead of inheritance
+[ ] show the file location on disk
+[ ] create new class
+[ ] modify method/field access modifiers, type
+[ ] show local var info (+ other code attributes?)
 [ ] session storing and loading
 [ ] button to locate the current open tab with class hierarchy tree, and one to autosync when changing tabs, similar to eclipse double arrows
 [ ] back/forward to navigate between locations
