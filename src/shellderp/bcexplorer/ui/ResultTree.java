@@ -1,4 +1,4 @@
-package shellderp.bcexplorer;
+package shellderp.bcexplorer.ui;
 
 import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
 import shellderp.bcexplorer.ui.TreeContextMenuListener;

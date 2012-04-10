@@ -24,7 +24,7 @@ public class ClassTabPane extends JTabbedPane {
         this.classHierarchy = classHierarchy;
         this.resultTabPane = resultTabPane;
 
-        addMouseListener(new shellderp.bcexplorer.MiddleClickCloseTabListener(this));
+        addMouseListener(new MiddleClickCloseTabListener(this));
     }
 
     public ClassTree openClassTab(final ClassGen cg) {

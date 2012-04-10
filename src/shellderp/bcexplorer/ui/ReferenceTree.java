@@ -1,8 +1,8 @@
-package shellderp.bcexplorer;
+package shellderp.bcexplorer.ui;
 
-import shellderp.bcexplorer.ui.ClassTabPane;
-import shellderp.bcexplorer.ui.ClassTree;
-import shellderp.bcexplorer.ui.SwingUtils;
+import shellderp.bcexplorer.InstructionWrapper;
+import shellderp.bcexplorer.Node;
+import shellderp.bcexplorer.Reference;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;

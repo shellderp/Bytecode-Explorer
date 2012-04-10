@@ -50,7 +50,7 @@ public class SwingUtils {
     }
 
     public static TreePath buildTreePath(Node root, Object end) {
-        ArrayList<Node> list = new ArrayList<Node>();
+        ArrayList<Node> list = new ArrayList<>();
         Node node = root.depthSearch(end);
         while (node != null) {
             list.add(node);

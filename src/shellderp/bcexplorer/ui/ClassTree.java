@@ -5,7 +5,6 @@ import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.*;
-import shellderp.bcexplorer.SwingUtils;
 import shellderp.bcexplorer.reference.FieldReferenceFilter;
 import shellderp.bcexplorer.reference.MethodReferenceFilter;
 
