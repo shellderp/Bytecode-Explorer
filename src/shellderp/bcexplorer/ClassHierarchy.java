@@ -2,10 +2,8 @@ package shellderp.bcexplorer;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.*;
-import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.generic.*;
-import shellderp.bcexplorer.reference.Reference;
-import shellderp.bcexplorer.reference.InstructionFilter;
+import shellderp.bcexplorer.ui.ClassTabPane;
 import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
 import shellderp.bcexplorer.ui.TreeContextMenuListener;
 
@@ -138,7 +136,7 @@ public class ClassHierarchy {
             }
         });
 
-        tree.addMouseListener(new TreeContextMenuListener<>(new DefaultTreeContextMenuProvider<>(), tree, null));
+        tree.addMouseListener(new TreeContextMenuListener(new DefaultTreeContextMenuProvider(), tree));
 
         return tree;
     }
@@ -170,7 +168,7 @@ public class ClassHierarchy {
             for (InstructionHandle ih : list.getInstructionHandles()) {
                 Instruction instruction = ih.getInstruction();
 
-                if (filter.filter(visitClass, method, instruction)) {
+                if (filter.process(visitClass, method, instruction)) {
                     refs.add(new Reference(visitClass, method, ih));
                 }
             }

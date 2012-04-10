@@ -1,11 +1,10 @@
 package shellderp.bcexplorer;
 
-import shellderp.bcexplorer.reference.Reference;
+import shellderp.bcexplorer.ui.ClassTabPane;
+import shellderp.bcexplorer.ui.ClassTree;
 import shellderp.bcexplorer.ui.SwingUtils;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -38,10 +37,8 @@ public class ReferenceTree extends ResultTree {
             methodNode.addChild(ref);
         }
 
-        ((DefaultTreeModel) getModel()).setRoot(root);
-
+        setModel(new DefaultTreeModel(root));
         setRootVisible(false);
-
         SwingUtils.expandAllChildren(this, new TreePath(root), true);
 
         addMouseListener(new MouseAdapter() {
@@ -54,9 +51,8 @@ public class ReferenceTree extends ResultTree {
 
                     Reference value = (Reference) node.get();
 
-                    JTree classTree = classTabPane.openClassTab(value.classGen);
-                    Node root = (Node) classTree.getModel().getRoot();
-                    Node inode = root.findChild("Methods").findChild(value.method).findChild(new InstructionWrapper(value.ih, value.method));
+                    ClassTree classTree = classTabPane.openClassTab(value.classGen);
+                    Node inode = classTree.methods.findChild(value.method).findChild(new InstructionWrapper(value.ih, value.method));
                     SwingUtils.goToNode(classTree, inode.getPath());
                 }
             }

@@ -2,6 +2,7 @@ package shellderp.bcexplorer;
 
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.generic.*;
+import shellderp.bcexplorer.ui.ClassTabPane;
 import shellderp.bcexplorer.ui.MiddleClickCloseTabListener;
 import shellderp.bcexplorer.ui.SwingUtils;
 

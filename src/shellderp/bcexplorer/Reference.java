@@ -1,9 +1,8 @@
-package shellderp.bcexplorer.reference;
+package shellderp.bcexplorer;
 
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.MethodGen;
 
 /**
  * Created by: Mike

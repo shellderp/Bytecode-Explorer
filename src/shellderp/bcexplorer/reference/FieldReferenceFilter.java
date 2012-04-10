@@ -3,6 +3,7 @@ package shellderp.bcexplorer.reference;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.*;
+import shellderp.bcexplorer.InstructionFilter;
 
 /**
  * Created by: Mike
@@ -19,7 +20,7 @@ public class FieldReferenceFilter implements InstructionFilter {
     }
 
     @Override
-    public boolean filter(ClassGen visitClass, Method visitMethod, Instruction instruction) {
+    public boolean process(ClassGen visitClass, Method visitMethod, Instruction instruction) {
         if (!(instruction instanceof FieldInstruction))
             return false;
         

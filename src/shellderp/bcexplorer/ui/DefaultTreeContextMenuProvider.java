@@ -11,9 +11,9 @@ import java.awt.event.ActionEvent;
  * Date: 1/25/12
  * Time: 11:23 PM
  */
-public class DefaultTreeContextMenuProvider<T> implements TreeContextMenuProvider<T> {
+public class DefaultTreeContextMenuProvider implements TreeContextMenuProvider {
 
-    public JPopupMenu createContextMenu(final JTree tree, final TreePath path, final Node node, final T arg) {
+    public JPopupMenu createContextMenu(final JTree tree, final TreePath path, final Node node) {
         JPopupMenu menu = new JPopupMenu();
 
         menu.add(new AbstractAction("Copy") {
@@ -45,7 +45,7 @@ public class DefaultTreeContextMenuProvider<T> implements TreeContextMenuProvide
         return menu;
     }
 
-    public JPopupMenu createContextMenu(final JTree tree, final TreePath[] paths, final Node[] nodes, final T arg) {
+    public JPopupMenu createContextMenu(final JTree tree, final TreePath[] paths, final Node[] nodes) {
         JPopupMenu menu = new JPopupMenu();
 
         menu.add(new AbstractAction("Copy") {

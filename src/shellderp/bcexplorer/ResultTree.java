@@ -17,7 +17,7 @@ import javax.swing.tree.TreePath;
 public class ResultTree extends JTree {
 
     public ResultTree() {
-        addMouseListener(new TreeContextMenuListener<>(new DefaultTreeContextMenuProvider<>(), this, null));
+        addMouseListener(new TreeContextMenuListener(new DefaultTreeContextMenuProvider(), this));
     }
 
 }
