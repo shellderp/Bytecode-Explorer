@@ -8,6 +8,7 @@ import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
 import shellderp.bcexplorer.ui.TreeContextMenuListener;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -26,14 +27,18 @@ import java.util.jar.JarFile;
  * Time: 8:31 PM
  */
 public class ClassHierarchy {
-    private HashMap<String, Node<ClassGen>> classes = new HashMap<String, Node<ClassGen>>();
-    Node<ClassGen> rootClass;
+    public final HashMap<String, Node<ClassGen>> classes = new HashMap<>();
+    public final Node<ClassGen> rootClass;
+
+    private DefaultTreeModel treeModel;
 
     public ClassHierarchy(String rootClassName) throws ClassNotFoundException {
         // initialize the root class
         rootClass = new Node<ClassGen>(new ClassGen(Repository.lookupClass(rootClassName)));
         rootClass.setDisplayText(rootClass.get().getClassName());
         classes.put(rootClass.get().getClassName(), rootClass);
+
+        treeModel = new DefaultTreeModel(rootClass);
     }
 
     public void loadClasses(List<ClassGen> loadList) {
@@ -70,7 +75,9 @@ public class ClassHierarchy {
             }
         }
 
-        rootClass.sortAll(); // TODO maybe do this while inserting?
+        rootClass.sortAll(); // TODO find a way to preserve order while inserting, instead of sorting afterwards
+
+        treeModel.reload();
     }
 
     public void loadJarFile(JarFile jar) throws IOException {
@@ -115,10 +122,12 @@ public class ClassHierarchy {
         rootClass.removeAllChildren();
         classes.clear();
         classes.put(rootClass.get().getClassName(), rootClass);
+
+        treeModel.reload();
     }
 
     public JTree buildJTree(final ClassTabPane classTabPane) {
-        final JTree tree = new JTree(rootClass);
+        final JTree tree = new JTree(treeModel);
 
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 

@@ -1,13 +1,15 @@
 MAIN FUNCTIONALITY:
-[x] go to super declaration
+[ ] constantpool instruction context menu: go to declaration and all respective menu items (e.g. find references)
+    - for a method call, have a menu for the class, as well as the method
 [ ] classes can be loaded as orphans (no superclass loaded). keep in a list and link to parents if parentclass is loaded
-[ ] go to declaration button in context menu when right clicking instructions such as a method call, field reference, etc
-[ ] when showing a context menu for an instruction, list all fields and methods references in a submenu i.e. Args -> A, B
-[x] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
 [ ] find all references to a class (rather than to a specific member) either from class hierarchy or a class tab
-[ ] search in classes - for classnames, methodnames, fieldnames, constants, more?
+[ ] class/field/method name refactoring
+[ ] context menu for classes: find in tree, find references, unload
+[ ] search loaded classes - for classnames, methodnames, fieldnames, constants, more?
     - can have a search for class member by modifiers/name
+
 [ ] search in open class - not sure what criteria to use
+     - can use same search as above but allow scope to be either all loaded classes or currently open class
 [ ] handle overrides in reference search
    - 3 scenarios:
     - target/baseclass has a method m which a subclass s does not override, in this case show all references to m invoked on s
@@ -20,10 +22,11 @@ MAIN FUNCTIONALITY:
     - also have option to save all files to wherever they came from, and possibly for only modified files
      - "save all classes to original files" "save only modified classes to original files"
      - this will also allow unloading files by their source
-[ ] field/method name refactoring
 [ ] annotation - highlighting, making notes in classes, allow hotlinking to members
     - can do bookmarks similarly
 [ ] docking frames
+[x] go to super declaration
+[x] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
 
 
 CONVENIENCE:
@@ -31,7 +34,7 @@ CONVENIENCE:
 [x] add option to load additional classes ontop of the existing tree
 [x] group constant pool entries by type
 [ ] option to display tree by package instead of inheritance
-[ ] show the file location on disk
+[ ] show class file location on disk
 [ ] create new class
 [ ] modify method/field access modifiers, type
 [ ] show local var info (+ other code attributes?)
@@ -39,7 +42,6 @@ CONVENIENCE:
 [ ] button to locate the current open tab with class hierarchy tree, and one to autosync when changing tabs, similar to eclipse double arrows
 [ ] back/forward to navigate between locations
 [ ] toggle between fully qualified names and simple class names, possibly per location (i.e. only for reference tab)
-    - if fully qualified disabled for tabs, mouse over tooltip for full name
     - have a Name class that provides the chosen name style
 [ ] type-first-letters-to-find classes, methods, fields
 [x] expand all nodes when creating trees

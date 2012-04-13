@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 /**
- * Frame that holds the application together.
+ * Main application frame.
  * <p/>
  * Created by: Mike
  */
@@ -27,8 +27,7 @@ public class BCExplorerFrame extends JFrame {
     private JSplitPane horizontalSplitPane;
     private JSplitPane verticalSplitPane;
 
-    private ClassHierarchy classHierarchy;
-    private JTree classTree;
+    ClassHierarchy classHierarchy;
 
     private ClassTabPane classTabPane;
     private JTabbedPane resultTabPane;
@@ -71,10 +70,6 @@ public class BCExplorerFrame extends JFrame {
                         SwingUtils.showErrorDialog(BCExplorerFrame.this, "Error loading", "Error loading '" + file.getName() + "'", "Message: " + ex);
                     }
                 }
-
-                // display the new class hierarchy
-                classTree = classHierarchy.buildJTree(classTabPane);
-                horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
             }
         });
         fileMenu.add(new AbstractAction("Unload all classes") {
@@ -85,8 +80,6 @@ public class BCExplorerFrame extends JFrame {
 
                 closeAll();
                 classHierarchy.unloadClasses();
-                classTree = classHierarchy.buildJTree(classTabPane);
-                horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
             }
         });
         fileMenu.addSeparator();
@@ -139,27 +132,10 @@ public class BCExplorerFrame extends JFrame {
         horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         horizontalSplitPane.setContinuousLayout(true);
 
-        JLabel label = new JLabel("No classes loaded");
-        label.setBorder(new EmptyBorder(3, 3, 3, 3));
-        label.setVerticalAlignment(SwingConstants.TOP);
-
-        horizontalSplitPane.setLeftComponent(label);
+        horizontalSplitPane.setLeftComponent(new JScrollPane(classHierarchy.buildJTree(classTabPane)));
         horizontalSplitPane.setRightComponent(verticalSplitPane);
 
         add(horizontalSplitPane, BorderLayout.CENTER);
-
-        // TODO remove after testing
-        try {
-            classHierarchy.loadDirectory(new File[]{new File("out")});
-            classTabPane = new ClassTabPane(classHierarchy, resultTabPane);
-            classTree = classHierarchy.buildJTree(classTabPane);
-            verticalSplitPane.setTopComponent(classTabPane);
-            horizontalSplitPane.setLeftComponent(new JScrollPane(classTree));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        //// remove after testing ////
-        //////////////////////////////
 
         validate();
     }
@@ -168,53 +144,6 @@ public class BCExplorerFrame extends JFrame {
         classTabPane.removeAll();
         resultTabPane.removeAll();
     }
-
-    /*public void actionPerformed(ActionEvent e) {
-        } else if (cmd.equals(".Tools.Search.Classes")) {
-            String input = JOptionPane.showInputDialog("Enter class name (regex):");
-            if (input == null)
-                return;
-            input = ".*?" + input + ".*?";
-            Vector<ClassGen> matches = new Vector<ClassGen>();
-            for (String name : loadedClasses.keySet()) {
-                if (name.matches(input)) {
-                    matches.add(loadedClasses.get(name));
-                }
-            }
-            showMatches(matches);
-        } else if (cmd.equals(".Tools.Search.Constants")) {
-            String input = JOptionPane.showInputDialog("Enter search string (regex):");
-            if (input == null)
-                return;
-            input = ".*?" + input + ".*?";
-            Vector<ClassGen> matches = new Vector<ClassGen>();
-            for (ClassGen cg : loadedClasses.values()) {
-                ConstantPoolGen cpgen = cg.getConstantPool();
-                for (int instruction = 0; instruction < cpgen.getSize(); instruction++) {
-                    Constant constant = cpgen.getConstant(instruction);
-                    if (constant instanceof ConstantString) {
-                        ConstantString cs = (ConstantString) constant;
-                        if (cs.getBytes(cpgen.getConstantPool()).matches(input)) {
-                            matches.add(cg);
-                            break;
-                        }
-                    } else if (constant instanceof ConstantUtf8) {
-                        ConstantUtf8 cs = (ConstantUtf8) constant;
-                        if (cs.getBytes().matches(input)) {
-                            matches.add(cg);
-                            break;
-                        }
-                    } else {
-                        if (constant != null && constant.toString().matches(input)) {
-                            matches.add(cg);
-                            break;
-                        }
-                    }
-                }
-            }
-            showMatches(matches);
-        }
-    }*/
 
     public void goToClassNode(JTree t, Object o) {
         SwingUtils.goToNode(t, SwingUtils.buildTreePath(classHierarchy.rootClass, o));
