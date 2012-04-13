@@ -28,12 +28,13 @@ public class ClassTabPane extends JTabbedPane {
     }
 
     public ClassTree openClassTab(final ClassGen cg) {
-        int openIndex = indexOfTab(cg.getClassName());
-        if (openIndex != -1) {
-            setSelectedIndex(openIndex);
-
-            JScrollPane scrollPane = (JScrollPane) getComponentAt(openIndex);
-            return (ClassTree) scrollPane.getViewport().getView();
+        for (int i = getTabCount() - 1; i >= 0; i--) {
+            JScrollPane scrollPane = (JScrollPane) getComponentAt(i);
+            ClassTree classTree = (ClassTree) scrollPane.getViewport().getView();
+            if (classTree.classGen.equals(cg)) {
+                setSelectedIndex(i);
+                return classTree;
+            }
         }
         
         ClassTree classTree = new ClassTree(cg, this, classHierarchy);
