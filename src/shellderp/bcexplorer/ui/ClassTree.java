@@ -1,10 +1,10 @@
 package shellderp.bcexplorer.ui;
 
-import org.apache.bcel.classfile.Constant;
-import org.apache.bcel.classfile.Field;
-import org.apache.bcel.classfile.Method;
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.*;
+import shellderp.bcexplorer.Node;
 import shellderp.bcexplorer.reference.FieldReferenceFilter;
 import shellderp.bcexplorer.reference.MethodReferenceFilter;
 
@@ -13,6 +13,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Created by: Mike
@@ -155,13 +157,8 @@ public class ClassTree extends JTree {
                 InstructionHandle iHandle = ((InstructionWrapper) node.get()).instruction;
 
                 if (iHandle.getInstruction() instanceof CPInstruction) {
-                    CPInstruction cp = (CPInstruction) iHandle.getInstruction();
-                    ConstantPoolGen cpgen = classGen.getConstantPool();
-                    System.out.println(cp.getType(cpgen));
-                    Constant c = cpgen.getConstant(cp.getIndex());
-                    System.out.println(cpgen.getConstantPool().constantToString(c));
-                    System.out.println(c.getClass().getSimpleName());
-
+                    CPInstruction cpInstruction = (CPInstruction) iHandle.getInstruction();
+                    addConstantMenuItems(menu, classGen.getConstantPool().getConstant(cpInstruction.getIndex()));
                 }
             }
 
@@ -175,4 +172,45 @@ public class ClassTree extends JTree {
             return menu;
         }
     };
+
+    public void addConstantMenuItems(JPopupMenu menu, Constant constant) {
+        ConstantPoolGen cpgen = classGen.getConstantPool();
+        ConstantPool cp = cpgen.getConstantPool();
+
+        menu.addSeparator();
+
+        if (constant instanceof ConstantCP) {
+            ConstantCP constantCP = (ConstantCP) constant;
+
+            ConstantClass constantClass = (ConstantClass) cpgen.getConstant(constantCP.getClassIndex());
+            ConstantNameAndType nameAndType = (ConstantNameAndType) cpgen.getConstant(constantCP.getNameAndTypeIndex());
+            final String refClassName = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
+            if (!classHierarchy.classes.containsKey(refClassName)) {
+                JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(refClassName) + "' not loaded");
+                submenu.add(new AbstractAction("Attempt load from classpath") {
+                    @Override public void actionPerformed(ActionEvent e) {
+                        try {
+                            ClassGen cg = new ClassGen(Repository.lookupClass(refClassName));
+                            classHierarchy.loadClasses(Collections.singletonList(cg));
+                        } catch (ClassNotFoundException ex) {
+                            // TODO display a message somewhere in the ui, preferably non-modal, non-intrusive
+                            System.err.println("class not found in repository: " + refClassName);
+                        }
+                    }
+                });
+                menu.add(submenu);
+            } else {
+                ClassGen refClass = classHierarchy.classes.get(refClassName).get();
+                // TODO - if method is contained in superclass, it won't be found!
+                Method method = refClass.containsMethod(nameAndType.getName(cp), nameAndType.getSignature(cp));
+                System.out.println(method);
+            }
+        } else {
+            System.out.println("not constantcp, " + constant);
+        }
+
+        //JMenuItem constantMenu = menu.add(cp.constantToString(constant));
+        //constantMenu.add
+        //System.out.println(c.getClass().getSimpleName());
+    }
 }

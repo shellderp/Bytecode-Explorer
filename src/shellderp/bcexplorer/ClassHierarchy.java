@@ -29,6 +29,7 @@ import java.util.jar.JarFile;
 public class ClassHierarchy {
     public final HashMap<String, Node<ClassGen>> classes = new HashMap<>();
     public final Node<ClassGen> rootClass;
+    final HashMap<String, List<Node<ClassGen>>> orphans = new HashMap<>();
 
     private DefaultTreeModel treeModel;
 
@@ -45,7 +46,7 @@ public class ClassHierarchy {
         Queue<String> loadQueue = new LinkedList<String>();
         for (ClassGen cg : loadList) {
             if (classes.containsKey(cg.getClassName())) {
-                System.err.println("[WARNING] skipping class already loaded: " + cg.getClassName());
+                System.err.println("[WARNING] skipping already loaded class: " + cg.getClassName());
                 continue;
             }
             classes.put(cg.getClassName(), new Node<ClassGen>(cg));
@@ -69,8 +70,19 @@ public class ClassHierarchy {
                     loadQueue.add(superName);
                     superNode.addChild(node);
                 } catch (ClassNotFoundException e) {
-                    // TODO link orphaned classes when loading other jars, since they might contain the superclass
                     System.err.println("WARNING: superclass missing: " + className);
+
+                    List<Node<ClassGen>> list = orphans.get(superName);
+                    if (list == null)
+                        orphans.put(superName, list = new ArrayList<>());
+                    list.add(node);
+                }
+            }
+            
+            List<Node<ClassGen>> classOrphans = orphans.get(className);
+            if (classOrphans != null) {
+                for (Node<ClassGen> orphan : classOrphans) {
+                    orphan.changeParent(node);
                 }
             }
         }

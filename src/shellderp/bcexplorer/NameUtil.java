@@ -10,11 +10,15 @@ import org.apache.bcel.generic.ClassGen;
 public class NameUtil {
     
     public static String getSimpleName(ClassGen classGen) {
-        String name = classGen.getClassName();
-        int lastDot = name.lastIndexOf('.');
-        if (lastDot != -1) {
-            name = name.substring(lastDot + 1);
-        }
-        return name;
+        return getSimpleName(classGen.getClassName());
     }
+    
+    public static String getSimpleName(String qualifiedName) {
+        int lastDot = qualifiedName.lastIndexOf('.');
+        if (lastDot != -1) {
+            qualifiedName = qualifiedName.substring(lastDot + 1);
+        }
+        return qualifiedName;
+    }
+    
 }

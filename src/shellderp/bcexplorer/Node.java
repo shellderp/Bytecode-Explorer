@@ -52,7 +52,7 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
     
     // Child-related methods
     public Node<T> addChild(Node<T> child) {
-        child.setParent(this);
+        child.changeParent(this);
         return child;
     }
 
@@ -67,7 +67,7 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
         children.clear();
     }
 
-    public void setParent(Node<T> newParent) {
+    public void changeParent(Node<T> newParent) {
         if (parent != null) {
             parent.children.remove(this);
         }
