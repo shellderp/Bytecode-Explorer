@@ -1,7 +1,6 @@
 MAIN FUNCTIONALITY:
-[ ] constantpool instruction context menu: go to declaration and all respective menu items (e.g. find references)
-    - for a method call, have a menu for the class, as well as the method
-[x] TESTME classes can be loaded as orphans (no superclass loaded). keep in a list and link to parents if parentclass is loaded
+[x] constantpool instruction context menu: go to declaration and all respective menu items (e.g. find references)
+[x] classes can be loaded as orphans (no superclass loaded). keep in a list and link to parents if parentclass is loaded
 [ ] orphaned classes are not shown in the tree, show them under an 'orphans' node
 [ ] find all references to a class (rather than to a specific member) either from class hierarchy or a class tab
 [ ] class/field/method name refactoring

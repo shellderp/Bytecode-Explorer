@@ -23,18 +23,13 @@ public class ReferenceTree extends ResultTree {
         Node root = new Node("References");
 
         for (Reference ref : refs) {
-            Node classNode = root.findChild(ref.classGen);
+            Node classNode = root.findChild(ref.getClassGen());
             if (classNode == null) {
-                classNode = root.addChild(ref.classGen);
-                classNode.setDisplayText(ref.classGen.getClassName());
+                classNode = root.addChild(ref.getClassGen());
+                classNode.setDisplayText(ref.getClassGen().getClassName());
             }
-
-            Node methodNode = classNode.findChild(ref.method);
-            if (methodNode == null) {
-                methodNode = classNode.addChild(ref.method);
-            }
-
-            methodNode.addChild(ref);
+            
+            ref.addResultTreeNode(classNode);
         }
 
         setModel(new DefaultTreeModel(root));
@@ -49,11 +44,11 @@ public class ReferenceTree extends ResultTree {
                     if (node == null || !(node.get() instanceof Reference))
                         return;
 
-                    Reference value = (Reference) node.get();
+                    Reference reference = (Reference) node.get();
 
-                    ClassTree classTree = classTabPane.openClassTab(value.classGen);
-                    Node inode = classTree.methods.findChild(value.method).findChild(new InstructionWrapper(value.ih, value.method));
-                    SwingUtils.goToNode(classTree, inode.getPath());
+                    ClassTree classTree = classTabPane.openClassTab(reference.getClassGen());
+                    Node refNode = reference.getReferencedClassNode(classTree);
+                    SwingUtils.goToNode(classTree, refNode.getPath());
                 }
             }
         });

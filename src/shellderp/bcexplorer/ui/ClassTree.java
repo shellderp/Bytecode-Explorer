@@ -2,6 +2,7 @@ package shellderp.bcexplorer.ui;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.*;
+import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.*;
 import shellderp.bcexplorer.Node;
@@ -13,7 +14,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.Collection;
 import java.util.Collections;
 
 /**
@@ -37,11 +37,12 @@ public class ClassTree extends JTree {
 
         ConstantPoolGen cpgen = classGen.getConstantPool();
         Node root = new Node<>(classGen);
-        root.setDisplayText("Class " + classGen.getClassName() + " extends " + classGen.getSuperclassName());
+        root.setDisplayText(Utility.accessToString(classGen.getAccessFlags(), true) + " " + Utility.classOrInterface(classGen.getAccessFlags()) + " " + classGen.getClassName() + " extends " + classGen.getSuperclassName());
 
         Node interfaces = root.addChild("Interfaces");
-        for (String iface : classGen.getInterfaceNames()) {
-            interfaces.addChild(iface); // TODO lookup interface, visually distinguish if unloaded
+        for (int constantIndex : classGen.getInterfaces()) {
+            Constant constant = cpgen.getConstant(constantIndex);
+            interfaces.addChild(constant).setDisplayText(cpgen.getConstantPool().constantToString(constant));
         }
 
         constants = root.addChild("Constant Pool (" + cpgen.getSize() + " entries)");
@@ -84,6 +85,8 @@ public class ClassTree extends JTree {
 
         super.setModel(new DefaultTreeModel(root));
 
+        expandPath(constants.getPath());
+        expandPath(interfaces.getPath());
         expandPath(fields.getPath());
         expandPath(methods.getPath());
     }
@@ -94,65 +97,11 @@ public class ClassTree extends JTree {
             JPopupMenu menu = super.createContextMenu(tree, path, node);
 
             if (node.get() instanceof Field) {
-                menu.addSeparator();
-
-                final Field field = (Field) node.get();
-
-                menu.add(new AbstractAction("Find Local References") {
-                    @Override public void actionPerformed(ActionEvent e) {
-                        classTabPane.addReferenceTab(classGen, field, ClassHierarchy.findReferences(classGen, new FieldReferenceFilter(classGen, field)));
-                    }
-                });
-
-                menu.add(new AbstractAction("Find Global References") {
-                    @Override public void actionPerformed(ActionEvent e) {
-                        classTabPane.addReferenceTab(classGen, field, classHierarchy.findReferences(new FieldReferenceFilter(classGen, field)));
-                    }
-                });
-
-                menu.addSeparator();
-
-                menu.add(new AbstractAction("Refactor name") {
-                    @Override public void actionPerformed(ActionEvent e) {
-                        // TODO find references, optionally check for conflicts, then update the references to the new name
-                        // possibly use bcel to verify modified classes afterwards?
-                    }
-                });
+                addFieldMenuItems(menu, classGen, (Field) node.get());
             } else if (node.get() instanceof Method) {
-                menu.addSeparator();
-
-                final Method method = (Method) node.get();
-
-                menu.add(new AbstractAction("Find Local References") {
-                    @Override public void actionPerformed(ActionEvent e) {
-                        classTabPane.addReferenceTab(classGen, method, ClassHierarchy.findReferences(classGen, new MethodReferenceFilter(classGen, method)));
-                    }
-                });
-
-                menu.add(new AbstractAction("Find Global References") {
-                    @Override public void actionPerformed(ActionEvent e) {
-                        classTabPane.addReferenceTab(classGen, method, classHierarchy.findReferences(new MethodReferenceFilter(classGen, method)));
-                    }
-                });
-
-                menu.addSeparator();
-
-                final Node<ClassGen> superDecl = classHierarchy.findSuperDeclaration(classGen, method);
-                if (superDecl != null) {
-                    menu.add(new AbstractAction("Go to super declaration") {
-                        @Override public void actionPerformed(ActionEvent e) {
-                            ClassTree classTree = classTabPane.openClassTab(superDecl.get());
-
-                            SwingUtils.goToNode(classTree, classTree.methods.findChild(method).getPath());
-                        }
-                    });
-                }
-
-                menu.add(new AbstractAction("Find overrides") {
-                    @Override public void actionPerformed(ActionEvent e) {
-                        // TODO
-                    }
-                });
+                addMethodMenuItems(menu, classGen, (Method) node.get());
+            } else if (node.get() instanceof Constant) {
+                addConstantMenuItems(menu, (Constant) node.get());
             } else if (node.get() instanceof InstructionWrapper) {
                 InstructionHandle iHandle = ((InstructionWrapper) node.get()).instruction;
 
@@ -177,40 +126,116 @@ public class ClassTree extends JTree {
         ConstantPoolGen cpgen = classGen.getConstantPool();
         ConstantPool cp = cpgen.getConstantPool();
 
-        menu.addSeparator();
-
         if (constant instanceof ConstantCP) {
             ConstantCP constantCP = (ConstantCP) constant;
 
             ConstantClass constantClass = (ConstantClass) cpgen.getConstant(constantCP.getClassIndex());
             ConstantNameAndType nameAndType = (ConstantNameAndType) cpgen.getConstant(constantCP.getNameAndTypeIndex());
             final String refClassName = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
-            if (!classHierarchy.classes.containsKey(refClassName)) {
-                JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(refClassName) + "' not loaded");
-                submenu.add(new AbstractAction("Attempt load from classpath") {
+            if (addClassMenuItems(menu, refClassName)) {
+                final FieldOrMethodReference reference = classHierarchy.findFieldOrMethod(refClassName, nameAndType.getName(cp), nameAndType.getSignature(cp));
+                if (reference == null)
+                    return;
+
+                FieldOrMethod fieldOrMethod = reference.getFieldOrMethod();
+                JMenu submenu = new JMenu(fieldOrMethod.getName());
+                submenu.add(new AbstractAction("Go to declaration") {
                     @Override public void actionPerformed(ActionEvent e) {
-                        try {
-                            ClassGen cg = new ClassGen(Repository.lookupClass(refClassName));
-                            classHierarchy.loadClasses(Collections.singletonList(cg));
-                        } catch (ClassNotFoundException ex) {
-                            // TODO display a message somewhere in the ui, preferably non-modal, non-intrusive
-                            System.err.println("class not found in repository: " + refClassName);
-                        }
+                        ClassTree classTree = classTabPane.openClassTab(reference.getClassGen());
+                        SwingUtils.goToNode(classTree, reference.getReferencedClassNode(classTree).getPath());
                     }
                 });
+                if (fieldOrMethod instanceof Field) {
+                    addFieldMenuItems(submenu.getPopupMenu(), reference.getClassGen(), (Field) fieldOrMethod);
+                } else {
+                    addMethodMenuItems(submenu.getPopupMenu(), reference.getClassGen(), (Method) fieldOrMethod);
+                }
                 menu.add(submenu);
-            } else {
-                ClassGen refClass = classHierarchy.classes.get(refClassName).get();
-                // TODO - if method is contained in superclass, it won't be found!
-                Method method = refClass.containsMethod(nameAndType.getName(cp), nameAndType.getSignature(cp));
-                System.out.println(method);
             }
-        } else {
-            System.out.println("not constantcp, " + constant);
+        } else if (constant instanceof ConstantClass) {
+            ConstantClass constantClass = (ConstantClass) constant;
+            String className = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
+            addClassMenuItems(menu, className);
+        }
+    }
+
+    public boolean addClassMenuItems(JPopupMenu menu, final String className) {
+        menu.addSeparator();
+
+        if (!classHierarchy.classes.containsKey(className)) {
+            JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(className) + "' not loaded");
+            submenu.add(new AbstractAction("Attempt load from classpath") {
+                @Override public void actionPerformed(ActionEvent e) {
+                    try {
+                        ClassGen cg = new ClassGen(Repository.lookupClass(className));
+                        classHierarchy.loadClasses(Collections.singletonList(cg));
+                    } catch (ClassNotFoundException ex) {
+                        System.err.println("class not found in repository: " + className);
+                    }
+                }
+            });
+            menu.add(submenu);
+
+            return false;
         }
 
-        //JMenuItem constantMenu = menu.add(cp.constantToString(constant));
-        //constantMenu.add
-        //System.out.println(c.getClass().getSimpleName());
+        JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(className) + "'");
+        submenu.add("Open");
+        submenu.add("Show in tree");
+        submenu.add("Find references");
+        submenu.add("Unload");
+        menu.add(submenu);
+
+        return true;
+    }
+
+    public void addMethodMenuItems(JPopupMenu menu, final ClassGen methodClassGen, final Method method) {
+        menu.addSeparator();
+
+        menu.add(new AbstractAction("Find Local References") {
+            @Override public void actionPerformed(ActionEvent e) {
+                classTabPane.addReferenceTab(methodClassGen, method, ClassHierarchy.findReferences(classGen, new MethodReferenceFilter(methodClassGen, method)));
+            }
+        });
+
+        menu.add(new AbstractAction("Find Global References") {
+            @Override public void actionPerformed(ActionEvent e) {
+                classTabPane.addReferenceTab(methodClassGen, method, classHierarchy.findReferences(new MethodReferenceFilter(methodClassGen, method)));
+            }
+        });
+
+        menu.addSeparator();
+
+        final Node<ClassGen> superDecl = classHierarchy.findSuperDeclaration(methodClassGen, method);
+        if (superDecl != null) {
+            menu.add(new AbstractAction("Go to super declaration") {
+                @Override public void actionPerformed(ActionEvent e) {
+                    ClassTree classTree = classTabPane.openClassTab(superDecl.get());
+                    SwingUtils.goToNode(classTree, classTree.methods.findChild(method).getPath());
+                }
+            });
+        }
+
+        menu.add(new AbstractAction("Find overrides") {
+            @Override public void actionPerformed(ActionEvent e) {
+                // TODO
+            }
+        });
+    }
+
+    public void addFieldMenuItems(JPopupMenu menu, final ClassGen fieldClassGen, final Field field) {
+        menu.addSeparator();
+
+        menu.add(new AbstractAction("Find Local References") {
+            @Override public void actionPerformed(ActionEvent e) {
+                classTabPane.addReferenceTab(fieldClassGen, field, ClassHierarchy.findReferences(classGen, new FieldReferenceFilter(fieldClassGen, field)));
+            }
+        });
+
+        menu.add(new AbstractAction("Find Global References") {
+            @Override public void actionPerformed(ActionEvent e) {
+                classTabPane.addReferenceTab(fieldClassGen, field, classHierarchy.findReferences(new FieldReferenceFilter(fieldClassGen, field)));
+            }
+        });
     }
 }

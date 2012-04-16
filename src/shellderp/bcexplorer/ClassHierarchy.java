@@ -137,6 +137,18 @@ public class ClassHierarchy {
 
         treeModel.reload();
     }
+    
+    public void unloadClass(String name) {
+        Node<ClassGen> node = classes.get(name);
+        if (node == null)
+            return;
+
+        classes.remove(name);
+        treeModel.reload();
+
+        // TODO relocate subclasses that become orphans
+        // TODO close tab for this class if exists
+    }
 
     public JTree buildJTree(final ClassTabPane classTabPane) {
         final JTree tree = new JTree(treeModel);
@@ -190,7 +202,7 @@ public class ClassHierarchy {
                 Instruction instruction = ih.getInstruction();
 
                 if (filter.process(visitClass, method, instruction)) {
-                    refs.add(new Reference(visitClass, method, ih));
+                    refs.add(new InstructionReference(visitClass, method, ih));
                 }
             }
         }
@@ -230,4 +242,25 @@ public class ClassHierarchy {
 
         return findSuperDeclaration(superNode.get(), method);
     }
+    
+    public FieldOrMethodReference findFieldOrMethod(String className, String name, String signature) {
+        Node<ClassGen> node = classes.get(className);
+        ClassGen classGen = node.get();
+
+        Method method = classGen.containsMethod(name, signature);
+        if (method != null)
+            return new FieldOrMethodReference(classGen, method);
+        
+        for (Field field : classGen.getFields()) {
+            if (field.getName().equals(name) && field.getSignature().equals(signature))
+                return new FieldOrMethodReference(classGen, field);
+        }
+
+        Node<ClassGen> superNode = node.getParent();
+        if (superNode == null)
+            return null;
+
+        return findFieldOrMethod(superNode.get().getClassName(), name, signature);
+    }
+
 }
