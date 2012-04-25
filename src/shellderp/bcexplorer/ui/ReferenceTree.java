@@ -23,9 +23,9 @@ public class ReferenceTree extends ResultTree {
         Node root = new Node("References");
 
         for (Reference ref : refs) {
-            Node classNode = root.findChild(ref.getClassGen());
+            Node classNode = root.findChild(ref.getClassGen().getClassName());
             if (classNode == null) {
-                classNode = root.addChild(ref.getClassGen());
+                classNode = root.addChild(ref.getClassGen().getClassName());
                 classNode.setDisplayText(ref.getClassGen().getClassName());
             }
             
