@@ -19,7 +19,7 @@ public class MiddleClickCloseTabListener extends MouseAdapter {
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON2) {
             int clickedTab = tabbedPane.indexAtLocation(e.getX(), e.getY());
             if (clickedTab != -1) {
