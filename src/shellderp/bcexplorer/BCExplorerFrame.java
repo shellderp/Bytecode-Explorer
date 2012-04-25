@@ -71,7 +71,7 @@ public class BCExplorerFrame extends JFrame {
                     }
                 }
             }
-        });
+        }).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         fileMenu.add(new AbstractAction("Unload all classes") {
             public void actionPerformed(ActionEvent e) {
                 int button = JOptionPane.showConfirmDialog(BCExplorerFrame.this, "Unload all classes?", "Confirm unload", JOptionPane.OK_CANCEL_OPTION);
@@ -101,11 +101,16 @@ public class BCExplorerFrame extends JFrame {
         }).setEnabled(false);
 
         JMenu toolsMenu = menubar.add(new JMenu("Tools"));
-        toolsMenu.add(new AbstractAction("Search for classes") {
+        toolsMenu.add(new AbstractAction("Search") {
             public void actionPerformed(ActionEvent e) {
                 // TODO
             }
         }).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+        toolsMenu.add(new AbstractAction("Request GC") {
+            public void actionPerformed(ActionEvent e) {
+                System.gc();
+            }
+        });
 
         setJMenuBar(menubar);
 
@@ -132,7 +137,7 @@ public class BCExplorerFrame extends JFrame {
         horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         horizontalSplitPane.setContinuousLayout(true);
 
-        horizontalSplitPane.setLeftComponent(new JScrollPane(classHierarchy.buildJTree(classTabPane)));
+        horizontalSplitPane.setLeftComponent(new JScrollPane(classHierarchy.getJTree(classTabPane)));
         horizontalSplitPane.setRightComponent(verticalSplitPane);
 
         add(horizontalSplitPane, BorderLayout.CENTER);
@@ -143,10 +148,6 @@ public class BCExplorerFrame extends JFrame {
     public void closeAll() {
         classTabPane.removeAll();
         resultTabPane.removeAll();
-    }
-
-    public void goToClassNode(JTree t, Object o) {
-        SwingUtils.goToNode(t, SwingUtils.buildTreePath(classHierarchy.rootClass, o));
     }
 
 }
