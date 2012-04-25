@@ -46,6 +46,17 @@ public class ClassTabPane extends JTabbedPane {
         return classTree;
     }
 
+    public void closeClassTab(String className) {
+        for (int i = getTabCount() - 1; i >= 0; i--) {
+            JScrollPane scrollPane = (JScrollPane) getComponentAt(i);
+            ClassTree classTree = (ClassTree) scrollPane.getViewport().getView();
+            if (className.equals(classTree.classGen.getClassName())) {
+                removeTabAt(i);
+                return;
+            }
+        }
+    }
+
     // TODO find suitable location
     public void addReferenceTab(ClassGen cg, Object value, List<Reference> refs) {
         if (refs.isEmpty())

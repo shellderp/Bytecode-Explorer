@@ -4,11 +4,13 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.ui.ClassTabPane;
+import shellderp.bcexplorer.ui.ClassTree;
 import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
 import shellderp.bcexplorer.ui.TreeContextMenuListener;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,6 +34,7 @@ public class ClassHierarchy {
     final HashMap<String, List<Node<ClassGen>>> orphans = new HashMap<>();
 
     private DefaultTreeModel treeModel;
+    private JTree tree;
 
     public ClassHierarchy(String rootClassName) throws ClassNotFoundException {
         // initialize the root class
@@ -139,19 +142,26 @@ public class ClassHierarchy {
     }
     
     public void unloadClass(String name) {
+        if (name.equals(rootClass.get().getClassName()))
+            return;
+
         Node<ClassGen> node = classes.get(name);
         if (node == null)
             return;
 
         classes.remove(name);
+        node.changeParent(null);
         treeModel.reload();
 
         // TODO relocate subclasses that become orphans
-        // TODO close tab for this class if exists
+        // TODO invalidate References (use weak references??)
     }
 
-    public JTree buildJTree(final ClassTabPane classTabPane) {
-        final JTree tree = new JTree(treeModel);
+    public JTree getJTree(final ClassTabPane classTabPane) {
+        if (tree != null)
+            return tree;
+        
+        tree = new JTree(treeModel);
 
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
@@ -169,7 +179,18 @@ public class ClassHierarchy {
             }
         });
 
-        tree.addMouseListener(new TreeContextMenuListener(new DefaultTreeContextMenuProvider(), tree));
+        tree.addMouseListener(new TreeContextMenuListener(new DefaultTreeContextMenuProvider() {
+            @Override public JPopupMenu createContextMenu(JTree tree, TreePath path, Node node) {
+                JPopupMenu menu = super.createContextMenu(tree, path, node);
+                
+                if (node.get() instanceof ClassGen) {
+                    ClassGen cg = (ClassGen) node.get();
+                    ClassTree.addClassMenuItems(ClassHierarchy.this, classTabPane, menu, cg.getClassName());
+                }
+                
+                return menu;
+            }
+        }, tree));
 
         return tree;
     }

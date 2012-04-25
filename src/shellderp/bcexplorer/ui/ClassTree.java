@@ -37,7 +37,11 @@ public class ClassTree extends JTree {
 
         ConstantPoolGen cpgen = classGen.getConstantPool();
         Node root = new Node<>(classGen);
-        root.setDisplayText(Utility.accessToString(classGen.getAccessFlags(), true) + " " + Utility.classOrInterface(classGen.getAccessFlags()) + " " + classGen.getClassName() + " extends " + classGen.getSuperclassName());
+        root.setDisplayText(Utility.accessToString(classGen.getAccessFlags(), true) + " " + Utility.classOrInterface(classGen.getAccessFlags()) + " " + classGen.getClassName());
+        
+        Constant superNameConstant = cpgen.getConstant(classGen.getSuperclassNameIndex());
+        if (superNameConstant != null)
+            root.addChild(superNameConstant).setDisplayText("extends " + classGen.getSuperclassName());
 
         Node interfaces = root.addChild("Interfaces");
         for (int constantIndex : classGen.getInterfaces()) {
@@ -109,6 +113,8 @@ public class ClassTree extends JTree {
                     CPInstruction cpInstruction = (CPInstruction) iHandle.getInstruction();
                     addConstantMenuItems(menu, classGen.getConstantPool().getConstant(cpInstruction.getIndex()));
                 }
+            } else if (node.get() instanceof ClassGen) {
+                addClassMenuItems(classHierarchy, classTabPane, menu, ((ClassGen) node.get()).getClassName());
             }
 
             return menu;
@@ -132,13 +138,14 @@ public class ClassTree extends JTree {
             ConstantClass constantClass = (ConstantClass) cpgen.getConstant(constantCP.getClassIndex());
             ConstantNameAndType nameAndType = (ConstantNameAndType) cpgen.getConstant(constantCP.getNameAndTypeIndex());
             final String refClassName = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
-            if (addClassMenuItems(menu, refClassName)) {
+            if (addClassMenuItems(classHierarchy, classTabPane, menu, refClassName)) {
                 final FieldOrMethodReference reference = classHierarchy.findFieldOrMethod(refClassName, nameAndType.getName(cp), nameAndType.getSignature(cp));
                 if (reference == null)
                     return;
 
                 FieldOrMethod fieldOrMethod = reference.getFieldOrMethod();
-                JMenu submenu = new JMenu(fieldOrMethod.getName());
+                String menuText = (fieldOrMethod instanceof Field ? "Field" : "Method") + " '" + fieldOrMethod.getName() + "'";
+                JMenu submenu = new JMenu(menuText);
                 submenu.add(new AbstractAction("Go to declaration") {
                     @Override public void actionPerformed(ActionEvent e) {
                         ClassTree classTree = classTabPane.openClassTab(reference.getClassGen());
@@ -155,11 +162,11 @@ public class ClassTree extends JTree {
         } else if (constant instanceof ConstantClass) {
             ConstantClass constantClass = (ConstantClass) constant;
             String className = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
-            addClassMenuItems(menu, className);
+            addClassMenuItems(classHierarchy, classTabPane, menu, className);
         }
     }
 
-    public boolean addClassMenuItems(JPopupMenu menu, final String className) {
+    public static boolean addClassMenuItems(final ClassHierarchy classHierarchy, final ClassTabPane classTabPane, JPopupMenu menu, final String className) {
         menu.addSeparator();
 
         if (!classHierarchy.classes.containsKey(className)) {
@@ -179,11 +186,29 @@ public class ClassTree extends JTree {
             return false;
         }
 
+        final Node<ClassGen> classNode = classHierarchy.classes.get(className);
         JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(className) + "'");
-        submenu.add("Open");
-        submenu.add("Show in tree");
-        submenu.add("Find references");
-        submenu.add("Unload");
+        submenu.add(new AbstractAction("Open") {
+            @Override public void actionPerformed(ActionEvent e) {
+                classTabPane.openClassTab(classHierarchy.classes.get(className).get());
+            }
+        });
+        submenu.add(new AbstractAction("Show in tree") {
+            @Override public void actionPerformed(ActionEvent e) {
+                SwingUtils.goToNode(classHierarchy.getJTree(classTabPane), classNode.getPath());
+            }
+        });
+        submenu.add(new AbstractAction("Find references") {
+            @Override public void actionPerformed(ActionEvent e) {
+                // TODO
+            }
+        });
+        submenu.add(new AbstractAction("Unload") {
+            @Override public void actionPerformed(ActionEvent e) {
+                classTabPane.closeClassTab(className);
+                classHierarchy.unloadClass(className);
+            }
+        });
         menu.add(submenu);
 
         return true;

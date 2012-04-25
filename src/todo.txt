@@ -1,20 +1,21 @@
 MAIN FUNCTIONALITY:
+[ ] implement context menu for classes: open, find in tree, find references, unload
 [x] constantpool instruction context menu: go to declaration and all respective menu items (e.g. find references)
 [x] classes can be loaded as orphans (no superclass loaded). keep in a list and link to parents if parentclass is loaded
 [ ] orphaned classes are not shown in the tree, show them under an 'orphans' node
-[ ] find all references to a class (rather than to a specific member) either from class hierarchy or a class tab
+[ ] find references function for classes (rather than to a specific member) either from class hierarchy or a class tab
 [ ] class/field/method name refactoring
-[ ] context menu for classes: find in tree, find references, unload
 [ ] search loaded classes - for classnames, methodnames, fieldnames, constants, more?
     - can have a search for class member by modifiers/name
-
 [ ] search in open class - not sure what criteria to use
-     - can use same search as above but allow scope to be either all loaded classes or currently open class
+     - can use same search as above but allow scope to be either all loaded classes or currently open class(es)
 [ ] handle overrides in reference search
    - 3 scenarios:
     - target/baseclass has a method m which a subclass s does not override, in this case show all references to m invoked on s
     - target/baseclass has a method m which a subclass s overrides, in this case do not show references to m invoked on s
     - target has a method m which is an overriden method from baseclass b; in this case, try to determine if a reference to b.m == a.m
+[ ] find overrides for methods (context menu)
+
 [ ] decompiled view
 [ ] save modified classes to jar
     - can keep track of where each file came from, then "save to respective jars" or "save all to single jar"
@@ -22,34 +23,32 @@ MAIN FUNCTIONALITY:
     - also have option to save all files to wherever they came from, and possibly for only modified files
      - "save all classes to original files" "save only modified classes to original files"
      - this will also allow unloading files by their source
-[ ] annotation - highlighting, making notes in classes, allow hotlinking to members
-    - can do bookmarks similarly
-[ ] docking frames
 [x] go to super declaration
 [x] replace ref searching with a function that calls back to each reference, or minimum returns a list rather than nodes
 
-
-CONVENIENCE:
-[x] merge loading jars & directories. select any files and auto load. if directory, load all jars in directory as well as classes
-[x] add option to load additional classes ontop of the existing tree
+UI ENHANCEMENTS:
 [x] group constant pool entries by type
+[x] expand all nodes when creating trees
+[ ] color/style syntax
 [ ] option to display tree by package instead of inheritance
 [ ] show class file location on disk
-[ ] create new class
-[ ] modify method/field access modifiers, type
-[ ] show local var info (+ other code attributes?)
-[ ] session storing and loading
 [ ] button to locate the current open tab with class hierarchy tree, and one to autosync when changing tabs, similar to eclipse double arrows
 [ ] back/forward to navigate between locations
 [ ] toggle between fully qualified names and simple class names, possibly per location (i.e. only for reference tab)
     - have a Name class that provides the chosen name style
 [ ] type-first-letters-to-find classes, methods, fields
-[x] expand all nodes when creating trees
 [ ] option to order methods,fields by modifiers, alphabetical, type
 [ ] use icons for methods,fields to reflect modifiers
 [ ] report errors in non-modal, corner popups, instead of printing to stderr
+[ ] confirm before exiting (if there are unsaved changes)
+[ ] docking frames
 
-timeless:
+FUNCTIONAL ENHANCEMENTS:
+[x] merge loading jars & directories. select any files and auto load. if directory, load all jars in directory as well as classes
+[x] add option to load additional classes ontop of the existing tree
+[ ] create new class
+[ ] modify method/field access modifiers, type
+[ ] show local var info (+ other code attributes?)
+[ ] session storing and loading
+[ ] annotation - highlighting, making notes in classes, allow hotlinking to members
 [ ] move slow things off swing thread to a threadpool e.g. reference searching
-[ ] confirm before exiting (only for unsaved changes)
-[ ] settings dialog
