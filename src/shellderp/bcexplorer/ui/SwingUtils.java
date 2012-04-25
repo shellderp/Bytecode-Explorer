@@ -49,17 +49,6 @@ public class SwingUtils {
         }
     }
 
-    public static TreePath buildTreePath(Node root, Object end) {
-        ArrayList<Node> list = new ArrayList<>();
-        Node node = root.depthSearch(end);
-        while (node != null) {
-            list.add(node);
-            node = node.getParent();
-        }
-        Collections.reverse(list);
-        return new TreePath(list.toArray());
-    }
-
     public static void goToNode(JTree t, TreePath path) {
         t.setSelectionPath(path);
         t.scrollPathToVisible(path);
