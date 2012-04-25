@@ -11,10 +11,7 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
     private String displayText;
 
     public Node(T value) {
-        this.value = value;
-
-        if (value == null)
-            throw new RuntimeException("Node value cannot be null");
+        set(value);
     }
 
     // Value-related methods
@@ -72,7 +69,9 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
             parent.children.remove(this);
         }
         parent = newParent;
-        newParent.children.add(this);
+        if (newParent != null) {
+            newParent.children.add(this);
+        }
     }
 
 
