@@ -57,13 +57,8 @@ public class ClassTabPane extends JTabbedPane {
         }
     }
 
-    // TODO find suitable location
-    public void addReferenceTab(ClassGen cg, Object value, List<Reference> refs) {
-        if (refs.isEmpty())
-            return;
-
-        ReferenceTree rt = new ReferenceTree(this, refs);
-        resultTabPane.addTab("Refs to " + cg.getClassName() + "." + value, new JScrollPane(rt));
+    public void addResultTab(String tabTitle, ResultTree resultTree) {
+        resultTabPane.addTab(tabTitle, new JScrollPane(resultTree));
         resultTabPane.setSelectedIndex(resultTabPane.getComponentCount() - 1);
     }
 

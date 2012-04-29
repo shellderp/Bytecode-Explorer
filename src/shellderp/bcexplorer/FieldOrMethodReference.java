@@ -26,7 +26,7 @@ public class FieldOrMethodReference extends Reference {
     }
 
     @Override public void addResultTreeNode(Node classNode) {
-        // TODO will be necessary for search results, find overrides
+        classNode.addChild(this);
     }
 
     public String toString() {

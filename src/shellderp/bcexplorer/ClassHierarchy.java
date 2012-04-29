@@ -230,18 +230,25 @@ public class ClassHierarchy {
 
         return refs;
     }
+    
+    public List<FieldOrMethodReference> findOverrides(String className, Method method) {
+        if (!classes.containsKey(className))
+            return null;
+        
+        return findOverrides(classes.get(className), method);
+    }
 
-    public HashMap<ClassGen, Method> findOverrides(Node<ClassGen> cgNode, Method method) {
+    public List<FieldOrMethodReference> findOverrides(Node<ClassGen> cgNode, Method method) {
         // todo: test this method
-        HashMap<ClassGen, Method> overrides = new HashMap<>();
+        List<FieldOrMethodReference> overrides = new ArrayList<>();
         String targetName = method.getName();
         String targetSig = method.getSignature();
         for (Node<ClassGen> child : cgNode) {
             if (!child.isLeaf())
-                overrides.putAll(findOverrides(child, method));
+                overrides.addAll(findOverrides(child, method));
             for (Method m : cgNode.get().getMethods()) {
                 if (targetName.equals(m.getName()) && targetSig.equals(m.getSignature())) {
-                    overrides.put(child.get(), m);
+                    overrides.add(new FieldOrMethodReference(child.get(), m));
                     break;
                 }
             }

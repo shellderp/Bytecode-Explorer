@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class ReferenceTree extends ResultTree {
 
-    public ReferenceTree(final ClassTabPane classTabPane, final List<Reference> refs) {
+    public ReferenceTree(final ClassTabPane classTabPane, final List<? extends Reference> refs) {
         Node root = new Node("References");
 
         for (Reference ref : refs) {

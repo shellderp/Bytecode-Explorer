@@ -14,7 +14,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.Collections;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created by: Mike
@@ -219,13 +220,13 @@ public class ClassTree extends JTree {
 
         menu.add(new AbstractAction("Find Local References") {
             @Override public void actionPerformed(ActionEvent e) {
-                classTabPane.addReferenceTab(methodClassGen, method, ClassHierarchy.findReferences(classGen, new MethodReferenceFilter(methodClassGen, method)));
+                addReferenceTab(methodClassGen, method, ClassHierarchy.findReferences(classGen, new MethodReferenceFilter(methodClassGen, method)));
             }
         });
 
         menu.add(new AbstractAction("Find Global References") {
             @Override public void actionPerformed(ActionEvent e) {
-                classTabPane.addReferenceTab(methodClassGen, method, classHierarchy.findReferences(new MethodReferenceFilter(methodClassGen, method)));
+                addReferenceTab(methodClassGen, method, classHierarchy.findReferences(new MethodReferenceFilter(methodClassGen, method)));
             }
         });
 
@@ -243,7 +244,10 @@ public class ClassTree extends JTree {
 
         menu.add(new AbstractAction("Find overrides") {
             @Override public void actionPerformed(ActionEvent e) {
-                // TODO
+                List<FieldOrMethodReference> overrides = classHierarchy.findOverrides(methodClassGen.getClassName(), method);
+                ReferenceTree rt = new ReferenceTree(classTabPane, overrides);
+                String title = "Overrides of " + NameUtil.getSimpleName(methodClassGen) + "." + method.getName() + NameUtil.getSimpleArgumentString(method.getSignature());
+                classTabPane.addResultTab(title, rt);
             }
         });
     }
@@ -253,14 +257,23 @@ public class ClassTree extends JTree {
 
         menu.add(new AbstractAction("Find Local References") {
             @Override public void actionPerformed(ActionEvent e) {
-                classTabPane.addReferenceTab(fieldClassGen, field, ClassHierarchy.findReferences(classGen, new FieldReferenceFilter(fieldClassGen, field)));
+                addReferenceTab(fieldClassGen, field, ClassHierarchy.findReferences(classGen, new FieldReferenceFilter(fieldClassGen, field)));
             }
         });
 
         menu.add(new AbstractAction("Find Global References") {
             @Override public void actionPerformed(ActionEvent e) {
-                classTabPane.addReferenceTab(fieldClassGen, field, classHierarchy.findReferences(new FieldReferenceFilter(fieldClassGen, field)));
+                addReferenceTab(fieldClassGen, field, classHierarchy.findReferences(new FieldReferenceFilter(fieldClassGen, field)));
             }
         });
+    }
+
+    public void addReferenceTab(ClassGen targetClassGen, FieldOrMethod target, List<Reference> refs) {
+        ReferenceTree rt = new ReferenceTree(classTabPane, refs);
+        String title = "References to " + NameUtil.getSimpleName(targetClassGen) + "." + target.getName();
+        if (target instanceof Method) {
+            title += NameUtil.getSimpleArgumentString(target.getSignature());
+        }
+        classTabPane.addResultTab(title, rt);
     }
 }
