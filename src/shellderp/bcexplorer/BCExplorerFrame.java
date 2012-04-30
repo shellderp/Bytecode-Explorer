@@ -5,6 +5,7 @@ import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.ui.ClassTabPane;
 import shellderp.bcexplorer.ui.MiddleClickCloseTabListener;
 import shellderp.bcexplorer.ui.SwingUtils;
+import shellderp.bcexplorer.ui.TabContextMenuListener;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -117,6 +118,7 @@ public class BCExplorerFrame extends JFrame {
         resultTabPane = new JTabbedPane();
         resultTabPane.addMouseListener(new MiddleClickCloseTabListener(resultTabPane));
         resultTabPane.setPreferredSize(new Dimension(0, getHeight() / 4));
+        resultTabPane.addMouseListener(new TabContextMenuListener(resultTabPane));
 
         try {
             classHierarchy = new ClassHierarchy(Object.class.getCanonicalName());

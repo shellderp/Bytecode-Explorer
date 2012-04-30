@@ -2,10 +2,8 @@ package shellderp.bcexplorer.ui;
 
 import org.apache.bcel.generic.*;
 import shellderp.bcexplorer.*;
-import shellderp.bcexplorer.Reference;
 
 import javax.swing.*;
-import java.util.List;
 
 /**
  * Provides a tabbed pane that displays open classes and their members.
@@ -25,6 +23,7 @@ public class ClassTabPane extends JTabbedPane {
         this.resultTabPane = resultTabPane;
 
         addMouseListener(new MiddleClickCloseTabListener(this));
+        addMouseListener(new TabContextMenuListener(this));
     }
 
     public ClassTree openClassTab(final ClassGen cg) {
