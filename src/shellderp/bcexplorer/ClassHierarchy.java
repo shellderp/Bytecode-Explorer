@@ -48,12 +48,13 @@ public class ClassHierarchy {
     public void loadClasses(List<ClassGen> loadList) {
         Queue<String> loadQueue = new LinkedList<String>();
         for (ClassGen cg : loadList) {
-            if (classes.containsKey(cg.getClassName())) {
-                System.err.println("[WARNING] skipping already loaded class: " + cg.getClassName());
+            String className = cg.getClassName();
+            if (classes.containsKey(className)) {
+                System.err.println("WARNING: skipping already loaded class: " + className);
                 continue;
             }
-            classes.put(cg.getClassName(), new Node<ClassGen>(cg));
-            loadQueue.add(cg.getClassName());
+            classes.put(className, new Node<ClassGen>(cg));
+            loadQueue.add(className);
         }
 
         while (!loadQueue.isEmpty()) {
@@ -239,7 +240,6 @@ public class ClassHierarchy {
     }
 
     public List<FieldOrMethodReference> findOverrides(Node<ClassGen> cgNode, Method method) {
-        // todo: test this method
         List<FieldOrMethodReference> overrides = new ArrayList<>();
         String targetName = method.getName();
         String targetSig = method.getSignature();

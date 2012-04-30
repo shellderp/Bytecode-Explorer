@@ -25,7 +25,6 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
             throw new RuntimeException("Node value cannot be null");
     }
 
-    // TODO override hashcode?
     public boolean equals(Object o) {
         if (o instanceof Node) {
             Node comp = (Node) o;
@@ -88,17 +87,6 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
         if (parent != null)
             return parent.getPath().pathByAddingChild(this);
         return new TreePath(this);
-    }
-
-    public Node<T> depthSearch(T value) {
-        if (this.value.equals(value))
-            return this;
-        for (Node<T> child : children) {
-            Node<T> node = child.depthSearch(value);
-            if (node != null)
-                return node;
-        }
-        return null;
     }
 
     public String treeString() {

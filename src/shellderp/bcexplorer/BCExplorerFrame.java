@@ -89,17 +89,6 @@ public class BCExplorerFrame extends JFrame {
                 new BCExplorerFrame().setVisible(true);
             }
         });
-        fileMenu.addSeparator();
-        fileMenu.add(new AbstractAction("Load session") {
-            public void actionPerformed(ActionEvent e) {
-                // TODO minor
-            }
-        }).setEnabled(false);
-        fileMenu.add(new AbstractAction("Save session") {
-            public void actionPerformed(ActionEvent e) {
-                // TODO minor
-            }
-        }).setEnabled(false);
 
         JMenu toolsMenu = menubar.add(new JMenu("Tools"));
         toolsMenu.add(new AbstractAction("Search") {
