@@ -250,6 +250,17 @@ public class ClassTree extends JTree {
                 classTabPane.addResultTab(title, rt);
             }
         });
+
+        Type returnType = method.getReturnType();
+        if (returnType instanceof ObjectType) {
+            addClassMenuItems(classHierarchy, classTabPane, menu, returnType.toString());
+        }
+
+        for (Type argType : method.getArgumentTypes()) {
+            if (argType instanceof ObjectType) {
+                addClassMenuItems(classHierarchy, classTabPane, menu, argType.toString());
+            }
+        }
     }
 
     public void addFieldMenuItems(JPopupMenu menu, final ClassGen fieldClassGen, final Field field) {
@@ -266,6 +277,11 @@ public class ClassTree extends JTree {
                 addReferenceTab(fieldClassGen, field, classHierarchy.findReferences(new FieldReferenceFilter(fieldClassGen, field)));
             }
         });
+
+        Type type = field.getType();
+        if (type instanceof ObjectType) {
+            addClassMenuItems(classHierarchy, classTabPane, menu, type.toString());
+        }
     }
 
     public void addReferenceTab(ClassGen targetClassGen, FieldOrMethod target, List<Reference> refs) {
