@@ -63,6 +63,10 @@ public class Node<T> implements TreeNode, Comparable<Node<T>>, Iterable<Node<T>>
         children.clear();
     }
 
+    public List<Node<T>> getChildren() {
+        return children;
+    }
+
     public void changeParent(Node<T> newParent) {
         if (parent != null) {
             parent.children.remove(this);

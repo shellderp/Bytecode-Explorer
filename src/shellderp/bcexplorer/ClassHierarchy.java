@@ -31,16 +31,19 @@ import java.util.jar.JarFile;
 public class ClassHierarchy {
     public final HashMap<String, Node<ClassGen>> classes = new HashMap<>();
     public final Node<ClassGen> rootClass;
-    final HashMap<String, List<Node<ClassGen>>> orphans = new HashMap<>();
+    public final Node orphanNode;
+    final HashMap<String, List<Node>> orphans = new HashMap<>();
 
     private DefaultTreeModel treeModel;
     private JTree tree;
 
     public ClassHierarchy(String rootClassName) throws ClassNotFoundException {
         // initialize the root class
-        rootClass = new Node<ClassGen>(new ClassGen(Repository.lookupClass(rootClassName)));
+        rootClass = new Node(new ClassGen(Repository.lookupClass(rootClassName)));
         rootClass.setDisplayText(rootClass.get().getClassName());
         classes.put(rootClass.get().getClassName(), rootClass);
+
+        orphanNode = new Node("Orphans");
 
         treeModel = new DefaultTreeModel(rootClass);
     }
@@ -76,18 +79,16 @@ public class ClassHierarchy {
                 } catch (ClassNotFoundException e) {
                     System.err.println("WARNING: superclass missing: " + className);
 
-                    List<Node<ClassGen>> list = orphans.get(superName);
-                    if (list == null)
-                        orphans.put(superName, list = new ArrayList<>());
-                    list.add(node);
+                    addOrphan(superName, node);
                 }
             }
             
-            List<Node<ClassGen>> classOrphans = orphans.get(className);
+            List<Node> classOrphans = orphans.get(className);
             if (classOrphans != null) {
-                for (Node<ClassGen> orphan : classOrphans) {
-                    orphan.changeParent(node);
+                for (Node orphan : classOrphans) {
+                    removeOrphan(orphan, node);
                 }
+                orphans.remove(className);
             }
         }
 
@@ -136,6 +137,9 @@ public class ClassHierarchy {
 
     public void unloadClasses() {
         rootClass.removeAllChildren();
+        orphanNode.removeAllChildren();
+        orphanNode.changeParent(null);
+
         classes.clear();
         classes.put(rootClass.get().getClassName(), rootClass);
 
@@ -152,10 +156,42 @@ public class ClassHierarchy {
 
         classes.remove(name);
         node.changeParent(null);
+
+        List<Node<ClassGen>> children = new ArrayList<>(node.getChildren());
+        for (Node<ClassGen> child : children) {
+            addOrphan(name, child);
+        }
+
         treeModel.reload();
 
         // TODO relocate subclasses that become orphans
         // TODO invalidate References (use weak references??)
+    }
+    
+    private void addOrphan(String superName, Node node) {
+        // add this class to the list of orphans with superclass superName
+        List<Node> list = orphans.get(superName);
+        if (list == null)
+            orphans.put(superName, list = new ArrayList<>());
+        list.add(node);
+
+        // if the orphan node previously had no children, add it to the tree
+        if (orphanNode.isLeaf()) {
+            rootClass.addChild(orphanNode);
+        }
+        orphanNode.addChild(node);
+
+        treeModel.reload();
+    }
+    
+    private void removeOrphan(Node node, Node parent) {
+        node.changeParent(parent);
+        
+        if (orphanNode.isLeaf()) {
+            orphanNode.changeParent(null);
+        }
+
+        treeModel.reload();
     }
 
     public JTree getJTree(final ClassTabPane classTabPane) {
@@ -173,9 +209,9 @@ public class ClassHierarchy {
         tree.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
-                    Node<ClassGen> node = (Node<ClassGen>) tree.getLastSelectedPathComponent();
-                    if (node != null)
-                        classTabPane.openClassTab(node.get());
+                    Node node = (Node) tree.getLastSelectedPathComponent();
+                    if (node != null && node.get() instanceof ClassGen)
+                        classTabPane.openClassTab((ClassGen) node.get());
                 }
             }
         });
