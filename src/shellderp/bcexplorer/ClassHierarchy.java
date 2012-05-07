@@ -267,6 +267,20 @@ public class ClassHierarchy {
 
         return refs;
     }
+
+    public List<Reference> findImplementingClasses(String interfaceName) {
+        List<Reference> refs = new ArrayList<>();
+
+        for (Node<ClassGen> classNode : classes.values()) {
+            for (String iface : classNode.get().getInterfaceNames()) {
+                if (iface.equals(interfaceName)) {
+                    refs.add(new Reference(classNode.get()));
+                }
+            }
+        }
+
+        return refs;
+    }
     
     public List<FieldOrMethodReference> findOverrides(String className, Method method) {
         if (!classes.containsKey(className))

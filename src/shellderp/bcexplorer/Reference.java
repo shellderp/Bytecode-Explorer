@@ -1,8 +1,6 @@
 package shellderp.bcexplorer;
 
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.InstructionHandle;
 import shellderp.bcexplorer.ui.ClassTree;
 
 import java.lang.ref.WeakReference;
@@ -12,7 +10,7 @@ import java.lang.ref.WeakReference;
  * Date: 3/5/12
  * Time: 9:25 PM
  */
-public abstract class Reference {
+public class Reference {
     private WeakReference<ClassGen> classGen;
 
     public Reference(ClassGen classGen) {
@@ -23,14 +21,22 @@ public abstract class Reference {
         return classGen.get();
     }
 
-    /** Returns the node which this reference points to
+    /**
+     * Returns the node which this reference points to
+     *
      * @param classTree the class tab tree for the ClassGen referenced by this object
      */
-    public abstract Node getReferencedClassNode(ClassTree classTree);
+    public Node getReferencedClassNode(ClassTree classTree) {
+        return (Node) classTree.getModel().getRoot();
+    }
 
     /**
      * Adds this reference to the result tree
+     *
      * @param classNode the tree node for the referenced classgen, to which additional nodes should be added
      */
-    public abstract void addResultTreeNode(Node classNode);
+    public void addResultTreeNode(Node classNode) {
+        classNode.set(this);
+    }
+
 }

@@ -23,7 +23,7 @@ import java.util.List;
  * Time: 4:11 PM
  */
 public class ClassTree extends JTree {
-    ClassGen classGen;
+    public ClassGen classGen;
     public Node constants, fields, methods;
 
     ClassTabPane classTabPane;
@@ -39,7 +39,7 @@ public class ClassTree extends JTree {
         ConstantPoolGen cpgen = classGen.getConstantPool();
         Node root = new Node<>(classGen);
         root.setDisplayText(Utility.accessToString(classGen.getAccessFlags(), true) + " " + Utility.classOrInterface(classGen.getAccessFlags()) + " " + classGen.getClassName());
-        
+
         Constant superNameConstant = cpgen.getConstant(classGen.getSuperclassNameIndex());
         if (superNameConstant != null)
             root.addChild(superNameConstant).setDisplayText("extends " + classGen.getSuperclassName());
@@ -188,7 +188,8 @@ public class ClassTree extends JTree {
         }
 
         final Node<ClassGen> classNode = classHierarchy.classes.get(className);
-        JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(className) + "'");
+        final ClassGen cg = classNode.get();
+        JMenu submenu = new JMenu((cg.isInterface() ? "Interface" : "Class") + " '" + NameUtil.getSimpleName(className) + "'");
         submenu.add(new AbstractAction("Open") {
             @Override public void actionPerformed(ActionEvent e) {
                 classTabPane.openClassTab(classHierarchy.classes.get(className).get());
@@ -210,6 +211,17 @@ public class ClassTree extends JTree {
                 classHierarchy.unloadClass(className);
             }
         });
+        if (cg.isInterface()) {
+            submenu.addSeparator();
+            submenu.add(new AbstractAction("Find implementing classes") {
+                @Override public void actionPerformed(ActionEvent e) {
+                    List<Reference> implementing = classHierarchy.findImplementingClasses(cg.getClassName());
+                    ReferenceTree rt = new ReferenceTree(classTabPane, implementing);
+                    String title = "Implementations of " + NameUtil.getSimpleName(cg);
+                    classTabPane.addResultTab(title, rt);
+                }
+            });
+        }
         menu.add(submenu);
 
         return true;
