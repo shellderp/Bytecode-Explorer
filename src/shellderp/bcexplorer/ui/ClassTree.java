@@ -115,6 +115,7 @@ public class ClassTree extends JTree {
                     addConstantMenuItems(menu, classGen.getConstantPool().getConstant(cpInstruction.getIndex()));
                 }
             } else if (node.get() instanceof ClassGen) {
+                menu.addSeparator();
                 addClassMenuItems(classHierarchy, classTabPane, menu, ((ClassGen) node.get()).getClassName());
             }
 
@@ -139,6 +140,7 @@ public class ClassTree extends JTree {
             ConstantClass constantClass = (ConstantClass) cpgen.getConstant(constantCP.getClassIndex());
             ConstantNameAndType nameAndType = (ConstantNameAndType) cpgen.getConstant(constantCP.getNameAndTypeIndex());
             final String refClassName = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
+            menu.addSeparator();
             if (addClassMenuItems(classHierarchy, classTabPane, menu, refClassName)) {
                 final FieldOrMethodReference reference = classHierarchy.findFieldOrMethod(refClassName, nameAndType.getName(cp), nameAndType.getSignature(cp));
                 if (reference == null)
@@ -163,13 +165,12 @@ public class ClassTree extends JTree {
         } else if (constant instanceof ConstantClass) {
             ConstantClass constantClass = (ConstantClass) constant;
             String className = Utility.compactClassName((String) constantClass.getConstantValue(cp), false);
+            menu.addSeparator();
             addClassMenuItems(classHierarchy, classTabPane, menu, className);
         }
     }
 
     public static boolean addClassMenuItems(final ClassHierarchy classHierarchy, final ClassTabPane classTabPane, JPopupMenu menu, final String className) {
-        menu.addSeparator();
-
         if (!classHierarchy.classes.containsKey(className)) {
             JMenu submenu = new JMenu("Class '" + NameUtil.getSimpleName(className) + "' not loaded");
             submenu.add(new AbstractAction("Attempt load from classpath") {
@@ -267,12 +268,16 @@ public class ClassTree extends JTree {
 
         Type returnType = method.getReturnType();
         if (returnType instanceof ObjectType) {
+            menu.addSeparator();
             addClassMenuItems(classHierarchy, classTabPane, menu, returnType.toString());
             classesAdded.add(returnType.toString());
         }
 
         for (Type argType : method.getArgumentTypes()) {
             if (argType instanceof ObjectType) {
+                if (classesAdded.isEmpty())
+                    menu.addSeparator();
+
                 if (!classesAdded.contains(argType.toString())) {
                     addClassMenuItems(classHierarchy, classTabPane, menu, argType.toString());
                     classesAdded.add(argType.toString());
@@ -298,6 +303,7 @@ public class ClassTree extends JTree {
 
         Type type = field.getType();
         if (type instanceof ObjectType) {
+            menu.addSeparator();
             addClassMenuItems(classHierarchy, classTabPane, menu, type.toString());
         }
     }
