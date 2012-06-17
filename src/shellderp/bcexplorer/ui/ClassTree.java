@@ -262,15 +262,21 @@ public class ClassTree extends JTree {
                 classTabPane.addResultTab(title, rt);
             }
         });
+        
+        ArrayList<String> classesAdded = new ArrayList<>();
 
         Type returnType = method.getReturnType();
         if (returnType instanceof ObjectType) {
             addClassMenuItems(classHierarchy, classTabPane, menu, returnType.toString());
+            classesAdded.add(returnType.toString());
         }
 
         for (Type argType : method.getArgumentTypes()) {
             if (argType instanceof ObjectType) {
-                addClassMenuItems(classHierarchy, classTabPane, menu, argType.toString());
+                if (!classesAdded.contains(argType.toString())) {
+                    addClassMenuItems(classHierarchy, classTabPane, menu, argType.toString());
+                    classesAdded.add(argType.toString());
+                }
             }
         }
     }
