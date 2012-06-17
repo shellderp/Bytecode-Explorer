@@ -1,7 +1,9 @@
 package shellderp.bcexplorer;
 
 import org.apache.bcel.classfile.Utility;
+import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.Type;
 
 /**
  * Created by: Mike
@@ -36,6 +38,13 @@ public class NameUtil {
         }
         sb.append(")");
         return sb.toString();
+    }
+    
+    public static Type reduceArrayType(Type type) {
+        while (type instanceof ArrayType) {
+            type = ((ArrayType) type).getElementType();
+        }
+        return type;
     }
 
 }

@@ -266,7 +266,7 @@ public class ClassTree extends JTree {
         
         ArrayList<String> classesAdded = new ArrayList<>();
 
-        Type returnType = method.getReturnType();
+        Type returnType = NameUtil.reduceArrayType(method.getReturnType());
         if (returnType instanceof ObjectType) {
             menu.addSeparator();
             addClassMenuItems(classHierarchy, classTabPane, menu, returnType.toString());
@@ -274,6 +274,7 @@ public class ClassTree extends JTree {
         }
 
         for (Type argType : method.getArgumentTypes()) {
+            argType = NameUtil.reduceArrayType(argType);
             if (argType instanceof ObjectType) {
                 if (classesAdded.isEmpty())
                     menu.addSeparator();
@@ -301,7 +302,7 @@ public class ClassTree extends JTree {
             }
         });
 
-        Type type = field.getType();
+        Type type = NameUtil.reduceArrayType(field.getType());
         if (type instanceof ObjectType) {
             menu.addSeparator();
             addClassMenuItems(classHierarchy, classTabPane, menu, type.toString());
