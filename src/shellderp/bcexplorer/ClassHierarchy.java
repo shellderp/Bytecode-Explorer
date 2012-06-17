@@ -164,7 +164,6 @@ public class ClassHierarchy {
 
         treeModel.reload();
 
-        // TODO relocate subclasses that become orphans
         // TODO invalidate References (use weak references??)
     }
     
@@ -221,6 +220,8 @@ public class ClassHierarchy {
                 JPopupMenu menu = super.createContextMenu(tree, path, node);
                 
                 if (node.get() instanceof ClassGen) {
+                    menu.addSeparator();
+
                     ClassGen cg = (ClassGen) node.get();
                     ClassTree.addClassMenuItems(ClassHierarchy.this, classTabPane, menu, cg.getClassName());
                 }
@@ -296,7 +297,7 @@ public class ClassHierarchy {
         for (Node<ClassGen> child : cgNode) {
             if (!child.isLeaf())
                 overrides.addAll(findOverrides(child, method));
-            for (Method m : cgNode.get().getMethods()) {
+            for (Method m : child.get().getMethods()) {
                 if (targetName.equals(m.getName()) && targetSig.equals(m.getSignature())) {
                     overrides.add(new FieldOrMethodReference(child.get(), m));
                     break;
