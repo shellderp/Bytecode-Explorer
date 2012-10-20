@@ -59,7 +59,7 @@ public class BCExplorerFrame extends JFrame {
                 for (File file : files) {
                     try {
                         if (file.isDirectory()) {
-                            classHierarchy.loadDirectory(new File[]{file});
+                            classHierarchy.loadDirectory(file);
                         } else if (file.getName().endsWith(".jar")) {
                             JarFile jf = new JarFile(file);
                             classHierarchy.loadJarFile(jf);

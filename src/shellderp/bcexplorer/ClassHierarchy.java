@@ -110,7 +110,7 @@ public class ClassHierarchy {
         loadClasses(classes);
     }
 
-    public void loadDirectory(File[] dirs) throws IOException {
+    public void loadDirectory(File... dirs) throws IOException {
         List<ClassGen> classes = new LinkedList<>();
 
         Stack<File> subDirs = new Stack<>();

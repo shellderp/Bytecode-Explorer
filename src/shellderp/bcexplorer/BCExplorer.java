@@ -16,9 +16,9 @@ public class BCExplorer {
 
             BCExplorerFrame bcExplorer = new BCExplorerFrame();
 
-            if (args.length == 1) {
-                // first argument specifies path to load on startup
-                bcExplorer.classHierarchy.loadDirectory(new File[]{new File(args[0])});
+            // arguments specify path(s) to load on startup
+            for (String arg : args) {
+                bcExplorer.classHierarchy.loadDirectory(new File(arg));
             }
 
             bcExplorer.setVisible(true);
