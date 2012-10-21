@@ -69,7 +69,7 @@ public class DefaultTreeContextMenuProvider implements TreeContextMenuProvider {
         menu.add(new AbstractAction("Collapse all children") {
             public void actionPerformed(ActionEvent e) {
                 for (TreePath path : paths)
-                    SwingUtils.expandAllChildren(tree, path, true);
+                    SwingUtils.expandAllChildren(tree, path, false);
             }
         });
 
