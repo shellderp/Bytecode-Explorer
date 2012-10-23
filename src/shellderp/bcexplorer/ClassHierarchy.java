@@ -3,15 +3,13 @@ package shellderp.bcexplorer;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
-import shellderp.bcexplorer.ui.ClassTabPane;
-import shellderp.bcexplorer.ui.ClassTree;
-import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
-import shellderp.bcexplorer.ui.TreeContextMenuListener;
+import shellderp.bcexplorer.ui.*;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
@@ -80,7 +78,7 @@ public class ClassHierarchy {
                     addOrphan(superName, node);
                 }
             }
-            
+
             List<Node> classOrphans = orphans.get(className);
             if (classOrphans != null) {
                 for (Node orphan : classOrphans) {
@@ -143,7 +141,7 @@ public class ClassHierarchy {
 
         treeModel.reload();
     }
-    
+
     public void unloadClass(String name) {
         if (name.equals(rootClass.get().getClassName()))
             return;
@@ -164,7 +162,7 @@ public class ClassHierarchy {
 
         // TODO invalidate References (use weak references??)
     }
-    
+
     private void addOrphan(String superName, Node node) {
         // add this class to the list of orphans with superclass superName
         List<Node> list = orphans.get(superName);
@@ -180,10 +178,10 @@ public class ClassHierarchy {
 
         treeModel.reload();
     }
-    
+
     private void removeOrphan(Node node, Node parent) {
         node.changeParent(parent);
-        
+
         if (orphanNode.isLeaf()) {
             orphanNode.changeParent(null);
         }
@@ -194,10 +192,10 @@ public class ClassHierarchy {
     public JTree getJTree(final ClassTabPane classTabPane) {
         if (tree != null)
             return tree;
-        
+
         tree = new JTree(treeModel);
 
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
         // double click opens the class, but we can still allow the user to expand the tree with a triple click
         tree.setToggleClickCount(3);
@@ -216,14 +214,47 @@ public class ClassHierarchy {
         tree.addMouseListener(new TreeContextMenuListener(new DefaultTreeContextMenuProvider() {
             @Override public JPopupMenu createContextMenu(JTree tree, TreePath path, Node node) {
                 JPopupMenu menu = super.createContextMenu(tree, path, node);
-                
+
                 if (node.get() instanceof ClassGen) {
                     menu.addSeparator();
 
                     ClassGen cg = (ClassGen) node.get();
                     ClassTree.addClassMenuItems(ClassHierarchy.this, classTabPane, menu, cg.getClassName());
                 }
-                
+
+                return menu;
+            }
+
+            @Override public JPopupMenu createContextMenu(JTree tree, TreePath[] paths, Node[] nodes) {
+                JPopupMenu menu = super.createContextMenu(tree, paths, nodes);
+
+                final List<ClassGen> classes = new ArrayList<>();
+                for (Node node : nodes) {
+                    if (node.get() instanceof ClassGen)
+                        classes.add((ClassGen) node.get());
+                }
+                if (!classes.isEmpty()) {
+                    menu.addSeparator();
+
+                    String numClasses = classes.size() + " class" + (classes.size() == 1 ? "" : "es");
+
+                    menu.add(new AbstractAction("Open " + numClasses) {
+                        @Override public void actionPerformed(ActionEvent e) {
+                            for (ClassGen cg : classes) {
+                                classTabPane.openClassTab(cg);
+                            }
+                        }
+                    });
+                    menu.add(new AbstractAction("Unload " + numClasses) {
+                        @Override public void actionPerformed(ActionEvent e) {
+                            for (ClassGen cg : classes) {
+                                classTabPane.closeClassTab(cg.getClassName());
+                                unloadClass(cg.getClassName());
+                            }
+                        }
+                    });
+                }
+
                 return menu;
             }
         }, tree));
@@ -280,11 +311,11 @@ public class ClassHierarchy {
 
         return refs;
     }
-    
+
     public List<FieldOrMethodReference> findOverrides(String className, Method method) {
         if (!classes.containsKey(className))
             return null;
-        
+
         return findOverrides(classes.get(className), method);
     }
 
@@ -319,7 +350,7 @@ public class ClassHierarchy {
 
         return findSuperDeclaration(superNode.get(), method);
     }
-    
+
     public FieldOrMethodReference findFieldOrMethod(String className, String name, String signature) {
         Node<ClassGen> node = classes.get(className);
         ClassGen classGen = node.get();
@@ -327,7 +358,7 @@ public class ClassHierarchy {
         Method method = classGen.containsMethod(name, signature);
         if (method != null)
             return new FieldOrMethodReference(classGen, method);
-        
+
         for (Field field : classGen.getFields()) {
             if (field.getName().equals(name) && field.getSignature().equals(signature))
                 return new FieldOrMethodReference(classGen, field);
