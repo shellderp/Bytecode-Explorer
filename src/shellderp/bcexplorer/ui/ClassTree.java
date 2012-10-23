@@ -14,7 +14,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -205,7 +206,7 @@ public class ClassTree extends JTree {
             @Override public void actionPerformed(ActionEvent e) {
                 // TODO
             }
-        });
+        }).setEnabled(false);
         submenu.add(new AbstractAction("Unload") {
             @Override public void actionPerformed(ActionEvent e) {
                 classTabPane.closeClassTab(className);

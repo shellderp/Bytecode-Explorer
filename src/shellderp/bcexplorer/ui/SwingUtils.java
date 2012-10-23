@@ -1,14 +1,10 @@
 package shellderp.bcexplorer.ui;
 
-import shellderp.bcexplorer.Node;
-
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 
 /**

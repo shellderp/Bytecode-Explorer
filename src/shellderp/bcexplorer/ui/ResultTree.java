@@ -1,11 +1,6 @@
 package shellderp.bcexplorer.ui;
 
-import shellderp.bcexplorer.ui.DefaultTreeContextMenuProvider;
-import shellderp.bcexplorer.ui.TreeContextMenuListener;
-
 import javax.swing.*;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 /**
  * Tree component used to display search results.

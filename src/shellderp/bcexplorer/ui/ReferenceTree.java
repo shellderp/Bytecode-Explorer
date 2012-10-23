@@ -1,6 +1,5 @@
 package shellderp.bcexplorer.ui;
 
-import shellderp.bcexplorer.InstructionWrapper;
 import shellderp.bcexplorer.Node;
 import shellderp.bcexplorer.Reference;
 

@@ -1,7 +1,8 @@
 package shellderp.bcexplorer.ui;
 
-import org.apache.bcel.generic.*;
-import shellderp.bcexplorer.*;
+import org.apache.bcel.generic.ClassGen;
+import shellderp.bcexplorer.ClassHierarchy;
+import shellderp.bcexplorer.NameUtil;
 
 import javax.swing.*;
 

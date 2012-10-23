@@ -25,8 +25,6 @@ import java.util.jar.JarFile;
  */
 
 public class BCExplorerFrame extends JFrame {
-    private JSplitPane horizontalSplitPane;
-    private JSplitPane verticalSplitPane;
 
     ClassHierarchy classHierarchy;
 
@@ -93,7 +91,7 @@ public class BCExplorerFrame extends JFrame {
         JMenu toolsMenu = menubar.add(new JMenu("Tools"));
         toolsMenu.add(new AbstractAction("Search") {
             public void actionPerformed(ActionEvent e) {
-                // TODO
+                System.out.println("search not implemented");
             }
         }).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
         toolsMenu.add(new AbstractAction("Request GC") {
@@ -113,19 +111,17 @@ public class BCExplorerFrame extends JFrame {
             classHierarchy = new ClassHierarchy(Object.class.getCanonicalName());
         } catch (ClassNotFoundException e) {
             // won't happen
-            e.printStackTrace();
-            System.exit(1);
         }
 
         classTabPane = new ClassTabPane(classHierarchy, resultTabPane);
 
-        verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         verticalSplitPane.setContinuousLayout(true);
         verticalSplitPane.setTopComponent(classTabPane);
         verticalSplitPane.setBottomComponent(resultTabPane);
         verticalSplitPane.setResizeWeight(1);
 
-        horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         horizontalSplitPane.setContinuousLayout(true);
 
         horizontalSplitPane.setLeftComponent(new JScrollPane(classHierarchy.getJTree(classTabPane)));

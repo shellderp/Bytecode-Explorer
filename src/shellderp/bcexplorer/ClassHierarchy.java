@@ -77,8 +77,6 @@ public class ClassHierarchy {
                     loadQueue.add(superName);
                     superNode.addChild(node);
                 } catch (ClassNotFoundException e) {
-                    System.err.println("WARNING: superclass missing: " + className);
-
                     addOrphan(superName, node);
                 }
             }
@@ -340,6 +338,40 @@ public class ClassHierarchy {
             return null;
 
         return findFieldOrMethod(superNode.get().getClassName(), name, signature);
+    }
+
+
+    /*
+     * Searches for constant references in all classes in the hierarchy.
+     */
+    public List<Reference> findConstantReferences(Constant constant) {
+        List<Reference> refs = new ArrayList<>();
+
+        for (Node<ClassGen> classNode : classes.values()) {
+            refs.addAll(findConstantReferences(classNode.get(), constant));
+        }
+
+        return refs;
+    }
+
+    public List<Reference> findConstantReferences(ClassGen cg, Constant constant) {
+        List<Reference> refs = new ArrayList<>();
+
+
+        for (Constant visitConstant : cg.getConstantPool().getConstantPool().getConstantPool()) {
+            if (visitConstant == null)
+                continue;
+
+            if (constant.equals(visitConstant)) { // todo equals won't work, need to deep compare constant values
+                System.out.println("match in class " + NameUtil.getSimpleName(cg));
+            }
+        }
+        // check if this class has a constant in the cpool with the required signature
+        // todo: other constants can reference a constantclass, for example, need to match these too
+        // check for reference in superclass, implemented interfaces, method types, field types
+        // then use instruction filter to find where it is referenced in methods
+
+        return refs;
     }
 
 }
